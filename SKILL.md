@@ -674,13 +674,13 @@ question(questions=[{
 | # | 标题 | 处理规则 |
 |---|------|---------|
 | 1 | ACKNOWLEDGMENTS | 从原文提取；无则写 "The authors have no acknowledgements to declare." |
-| 2 | AUTHOR CONTRIBUTION | 从原文提取；无则留空段落（仍保留标题） |
-| 3 | DATA SHARING STATEMENT | **固定文本，不从原文提取**："The data included in this study are available on the request from the corresponding author or the first author." |
-| 4 | FUNDING | 从原文提取；无则写 "Not applicable." |
-| 5 | CONFLICTS OF INTEREST | **固定文本**："The authors declare that they have no conflicts of interest." |
-| 6 | ETHICS | **固定文本**："Not applicable." |
-| 7 | CONSENT FOR PUBLICATION | **固定文本**："The authors confirm that the work described has not been published before." |
-| 8 | ORCID | 每位作者一行：`姓名: ORCID号` 或 `姓名: Not available` |
+| 2 | DATA SHARING STATEMENT | **固定文本，不从原文提取**："The data included in this study are available on the request from the corresponding author or the first author." |
+| 3 | FUNDING | 从原文提取；无则写 "Not applicable." |
+| 4 | CONFLICTS OF INTEREST | **固定文本**："The authors declare that they have no conflicts of interest." |
+| 5 | ETHICS | **固定文本**："Not applicable." |
+| 6 | CONSENT FOR PUBLICATION | **固定文本**："The authors confirm that the work described has not been published before." |
+| 7 | ORCID | 每位作者一行：`姓名: ORCID号` 或 `姓名: Not available` |
+| 8 | AUTHOR CONTRIBUTION | 从原文提取；无则留空段落（仍保留标题） |
 | 9 | REFERENCES | 参考文献列表 |
 
 **标题名称禁止变体（禁止旧名 → 正确名）**：

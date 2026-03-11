@@ -1,6 +1,13 @@
 .DS_Store
 __pycache__/
 *.pyc
-.playwright-mcp/
-logs/
-screenshots/
+image/
+
+# 论文产出文件不属于 skill 仓库
+Erlotinib-FAERS-Pharmacovigilance/
+TGFB1-TIMP1-ccRCC-Biomarkers/
+Inguinal-Hernia-Cancer-Pathways/
+Integrative Analysis*/
+Identification of TGFB1*/
+Ferroptosis-Cervical-Cancer/
+*.docx
