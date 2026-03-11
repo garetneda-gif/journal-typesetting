@@ -606,11 +606,18 @@ question(questions=[{
 
 #### 图注对齐规则（MANDATORY）
 
-- **并排图片（side-by-side-figures）必须使用 CSS Grid 布局**，确保图注上端对齐（图注从同一水平线开始）
-- 布局原理：`display: grid` + `grid-template-columns: 1fr 1fr`，`figure` 设为 `display: contents`，`img` 固定 `grid-row: 1`（底部对齐 `align-self: end`），`figcaption` 固定 `grid-row: 2`（顶部对齐 `align-self: start`）
+- **并排图片（side-by-side-figures）必须使用 CSS Grid 布局**，确保图注底部对齐
+- 布局原理：`display: grid` + `grid-template-columns: 1fr 1fr`，`figure` 设为 `display: contents`，`img` 固定 `grid-row: 1`（底部对齐 `align-self: end`），`figcaption` 固定 `grid-row: 2`（底部对齐 `align-self: end`）
 - **禁止使用 `display: flex`**：flex 布局下不同高度的图片会导致图注起始位置不一致
 - 所有图注统一 `text-align: justify`（两端对齐）
 - 单独图片的图注也统一使用 justify
+
+#### 正文 URL 处理规则（MANDATORY）
+
+- **正文中出现的所有 URL 必须包裹 `<a>` 标签**（`<a href="..." target="_blank">URL</a>`），禁止裸文本 URL
+- 原因：`<a>` 标签已有 `overflow-wrap: anywhere; word-break: break-word;` 样式，允许 URL 在任意位置断行，避免 `text-align: justify` 在窄栏中产生巨大词间空白
+- **双栏 `.two-column` 必须设置** `overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto;`，允许在音节处断词，进一步消除 justify 空白
+- 适用范围：所有正文段落中的数据库链接、工具网址等
 
 #### 引号标点规则（MANDATORY）
 

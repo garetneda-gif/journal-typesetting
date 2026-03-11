@@ -106,6 +106,9 @@
             column-gap: var(--column-gap);
             column-fill: auto;             /* 顺序填充，避免跨栏元素被压到底部 */
             text-align: justify;           /* 两端对齐 */
+            overflow-wrap: anywhere;       /* URL 等长文本可在任意位置断行 */
+            hyphens: auto;                 /* 允许音节处断词，消除 justify 空白 */
+            -webkit-hyphens: auto;
         }
 
         /* ============ 跨栏元素 ============ */
@@ -278,10 +281,10 @@
         }
 
         .side-by-side-figures figcaption {
-            grid-row: 2;                   /* 所有图注统一在第2行 → 上端对齐 */
+            grid-row: 2;                   /* 所有图注统一在第2行 */
             text-align: justify;
             margin-top: 2mm;
-            align-self: start;             /* 图注顶部对齐 */
+            align-self: end;               /* 图注底部对齐 */
         }
 
         /* ============ 打印模式样式 ============ */
