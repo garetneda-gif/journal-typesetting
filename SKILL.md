@@ -43,14 +43,13 @@ mcp:
    |             | `style-mapping.md`            | 样式映射表（元素与CSS对应关系）                      |
    |             | `pagination-rules.md`         | 分页规则、CP3 布局验证（含 Playwright 自动化）       |
    |             | `typesetting-rules.md`        | 正文排版细节规则（图注、缩进、Back Matter 等）       |
-   |             | `troubleshooting.md`          | 常见问题排查指南                                     |
-   |             | `writing-rules.md`            | 大文件写入规则                                       |
+   |             | `troubleshooting.md`          | 常见问题排查 + 大文件写入规则                        |
    |             | `dependency-check.md`         | 依赖检查完整流程                                     |
    |             | `docx-parsing.md`             | Word 文档解析与简短标题确定                          |
-   |             | `image-url-collection.md`     | 图片 URL 收集流程                                    |
-   |             | `final-validation.md`         | 最终验证检查项                                       |
+   |             | `image-urls.md`               | 图片 URL 收集流程                                    |
+   |             | `validation-checklist.md`     | 最终验证检查项                                       |
 
-> 大文件写入规则（HTML > 30KB 时禁止 write 工具）参见 references/writing-rules.md
+> 大文件写入规则（HTML > 30KB 时禁止 write 工具）参见 references/troubleshooting.md § 大文件写入规则
 
 ---
 
@@ -91,7 +90,7 @@ mcp:
 
 ## 第2步：收集图片 URL
 
-> 完整图片 URL 收集流程（列出图片、URL 配置选项、根据选择收集）参见 references/image-url-collection.md
+> 完整图片 URL 收集流程（列出图片、URL 配置选项、根据选择收集）参见 references/image-urls.md
 
 ---
 
@@ -207,4 +206,4 @@ mcp:
 
 ## 第7步：最终验证（BLOCKING - 门控机制）
 
-> 完整验证流程（源文件比对验证、比对输出格式、其他检查项）参见 references/final-validation.md
+> 完整验证流程（源文件比对验证、比对输出格式、其他检查项）参见 references/validation-checklist.md
