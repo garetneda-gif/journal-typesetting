@@ -74,34 +74,6 @@ PYEOF
 [步骤6] 输出文件 → [步骤7] 强制验证 ✅
 ```
 
-## 📊 进度追踪方式
-
-所有进度追踪通过 **标准输出（print）** 以 **Markdown 格式** 输出，Claude 会在对话中实时展示：
-
-### 输出格式示例
-
-```python
-# 步骤进度
-print("📋 步骤3/7: 生成双栏分页HTML...")
-print("   ├─ 模板加载: ✅")
-print("   ├─ 封面页生成: ✅")
-print("   ├─ 正文分页: 📄 第2-6页")
-print("   └─ 文件写入: ✅ (38.5 KB)")
-
-# 检查点状态
-print("\n### ✅ CP3检查点")
-print("- [x] HTML文件已生成")
-print("- [x] 文件大小合理（20-50KB）")
-print("- [ ] 图片数量一致（待验证）")
-
-# 最终报告
-print("\n## 📋 最终验证报告")
-print("### ✅ 必检项（全部通过）")
-print("| 检查项 | 状态 | 详情 |")
-print("|--------|------|------|")
-print("| 输出文件夹 | ✅ PASS | /Users/.../ |")
-```
-
 ---
 
 ## 📍 检查点系统
@@ -631,21 +603,15 @@ question(questions=[{
 - ❌ 错误示例：`Figure 2. Venny Plot`、`Table 1. Patient Demographics`
 - ✅ 正确示例：`Figure 2 Venny Plot`、`Table 1 Patient Demographics`
 - 适用范围：所有 `.fig-caption`、`.table-caption` 元素，以及正文内对图表的编号引用标签
-
-
 - `ORIGINAL ARTICLE` 所在的 `<div>` 必须使用底部边框线样式：
+
   ```html
   <div style="font-family:Arial,Helvetica,sans-serif;font-size:10pt;font-weight:bold;letter-spacing:0.06em;text-transform:uppercase;margin-top:2mm;color:#000;border-bottom:1.5pt solid #000;padding-bottom:1mm;display:inline-block;">ORIGINAL ARTICLE</div>
   ```
-
 - 封面间距规则：`ORIGINAL ARTICLE`(mb:8mm) → 标题(mb:5mm) → 作者(mb:7mm) → front-matter(无mb)
-
-- 封面左栏4区块（按顺序）：Affiliations → Correspondence → Author Contributions → Funding information，左栏 `border-right: 0.5pt solid #000`
-
+- 封面左栏3区块（按顺序）：Affiliations → Correspondence → Funding information，左栏 `border-right: 0.5pt solid #000`
 - abstract-box padding 统一为 `4mm`（上下左右均为 `padding:4mm 7mm`）
-
 - body `line-height` 统一为 `1.4`
-
 - 页眉日期格式必须标准化为 `Received: YYYY-MM-DD, Revised: YYYY-MM-DD, Accepted: YYYY-MM-DD`，使用英文逗号分隔，DOI 前用 4em 间距
 
 #### 段落缩进规则
@@ -671,25 +637,25 @@ question(questions=[{
 
 **固定顺序9节（含 REFERENCES），全部必须保留标题（即使内容为空）**：
 
-| # | 标题 | 处理规则 |
-|---|------|---------|
-| 1 | ACKNOWLEDGMENTS | 从原文提取；无则写 "The authors have no acknowledgements to declare." |
-| 2 | DATA SHARING STATEMENT | **固定文本，不从原文提取**："The data included in this study are available on the request from the corresponding author or the first author." |
-| 3 | FUNDING | 从原文提取；无则写 "Not applicable." |
-| 4 | CONFLICTS OF INTEREST | **固定文本**："The authors declare that they have no conflicts of interest." |
-| 5 | ETHICS | **固定文本**："Not applicable." |
-| 6 | CONSENT FOR PUBLICATION | **固定文本**："The authors confirm that the work described has not been published before." |
-| 7 | ORCID | 每位作者一行：`姓名: ORCID号` 或 `姓名: Not available` |
-| 8 | AUTHOR CONTRIBUTION | 从原文提取；无则留空段落（仍保留标题） |
-| 9 | REFERENCES | 参考文献列表 |
+| # | 标题                    | 处理规则                                                                                                                                            |
+| - | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | ACKNOWLEDGMENTS         | 从原文提取；无则写 "The authors have no acknowledgements to declare."                                                                               |
+| 2 | DATA SHARING STATEMENT  | **固定文本，不从原文提取**："The data included in this study are available on the request from the corresponding author or the first author." |
+| 3 | FUNDING                 | 从原文提取；无则写 "Not applicable."                                                                                                                |
+| 4 | CONFLICTS OF INTEREST   | **固定文本**："The authors declare that they have no conflicts of interest."                                                                  |
+| 5 | ETHICS                  | **固定文本**："Not applicable."                                                                                                               |
+| 6 | CONSENT FOR PUBLICATION | **固定文本**："The authors confirm that the work described has not been published before."                                                    |
+| 7 | ORCID                   | 每位作者一行：`姓名: ORCID号` 或 `姓名: Not available`                                                                                          |
+| 8 | AUTHOR CONTRIBUTION     | 从原文提取；无则留空段落（仍保留标题）                                                                                                              |
+| 9 | REFERENCES              | 参考文献列表                                                                                                                                        |
 
 **标题名称禁止变体（禁止旧名 → 正确名）**：
 
-| 禁止使用 | 正确名称 |
-|-----------|-----------|
-| ACKNOWLEDGEMENTS | ACKNOWLEDGMENTS |
-| CONFLICT OF INTEREST | CONFLICTS OF INTEREST |
-| ETHICS STATEMENTS | ETHICS |
+| 禁止使用                           | 正确名称               |
+| ---------------------------------- | ---------------------- |
+| ACKNOWLEDGEMENTS                   | ACKNOWLEDGMENTS        |
+| CONFLICT OF INTEREST               | CONFLICTS OF INTEREST  |
+| ETHICS STATEMENTS                  | ETHICS                 |
 | AVAILABILITY OF DATA AND MATERIALS | DATA SHARING STATEMENT |
 
 **双栏格式 HTML**（`h1.section-title`）：
@@ -709,6 +675,7 @@ question(questions=[{
 注：所有 back matter 节标题统一使用 `margin-top:12mm;margin-bottom:6mm`，不区分首节和其余节。
 
 **分页规则（双栏）**：
+
 - Back matter 8节优先放在同一页（Conclusion 后）
 - 若放不下，允许从任意节标题处开新页
 - 节标题不可出现在页底孤行，必须连同段落一起移至下页
@@ -718,6 +685,7 @@ question(questions=[{
 双栏布局中，左栏最后一行若内容不足整行宽度，**必须**使用 `text-align-last: justify` 强制两端对齐，避免右侧出现大段空白。
 
 **CSS 实现（必须写入 `.column-left` 或对应左栏样式）**：
+
 ```css
 /* 双栏左栏末行强制两端对齐 */
 .column-left p {
@@ -734,12 +702,14 @@ question(questions=[{
 所有数学公式**必须**使用 MathJax 库渲染为 SVG 格式，禁止使用 MathML 原生标签、CSS hack（如 `border-top` 模拟根号横线）或 `<sup>` 标签模拟上标。
 
 **MathJax SVG 优势**：
+
 - 跨浏览器一致渲染（包括旧版浏览器）
 - 高质量矢量输出，缩放不失真
 - 支持完整 LaTeX 语法
 - 自动处理符号间距和对齐
 
 **引入 MathJax（必须添加到 `<head>` 区域）**：
+
 ```html
 <script>
 MathJax = {
@@ -757,29 +727,31 @@ MathJax = {
 
 **LaTeX 语法速查**：
 
-| 语法 | 用途 | 示例 |
-|------|------|------|
-| `\( ... \)` | 行内公式 | `\( x^2 + y^2 = z^2 \)` |
-| `\[ ... \]` | 块级公式（居中显示） | `\[ E = mc^2 \]` |
-| `^{}` | 上标 | `x^{2}` → x² |
-| `_{}` | 下标 | `x_{1}` → x₁ |
-| `\frac{a}{b}` | 分数 | `\frac{1}{2}` → ½ |
-| `\sqrt{}` | 根号 | `\sqrt{x}` → √x |
-| `\sqrt[n]{}` | n次根号 | `\sqrt[3]{x}` → ∛x |
-| `\sum` | 求和符号 | `\sum_{i=1}^{n}` |
-| `\int` | 积分符号 | `\int_{0}^{\infty}` |
-| `\lim` | 极限 | `\lim_{x \to 0}` |
-| `\overline{}` | 上划线 | `\overline{x}` → x̄ |
-| `\text{}` | 公式内普通文本 | `\text{其中}` |
+| 语法            | 用途                 | 示例                      |
+| --------------- | -------------------- | ------------------------- |
+| `\( ... \)`   | 行内公式             | `\( x^2 + y^2 = z^2 \)` |
+| `\[ ... \]`   | 块级公式（居中显示） | `\[ E = mc^2 \]`        |
+| `^{}`         | 上标                 | `x^{2}` → x²          |
+| `_{}`         | 下标                 | `x_{1}` → x₁          |
+| `\frac{a}{b}` | 分数                 | `\frac{1}{2}` → ½     |
+| `\sqrt{}`     | 根号                 | `\sqrt{x}` → √x       |
+| `\sqrt[n]{}`  | n次根号              | `\sqrt[3]{x}` → ∛x    |
+| `\sum`        | 求和符号             | `\sum_{i=1}^{n}`        |
+| `\int`        | 积分符号             | `\int_{0}^{\infty}`     |
+| `\lim`        | 极限                 | `\lim_{x \to 0}`        |
+| `\overline{}` | 上划线               | `\overline{x}` → x̄   |
+| `\text{}`     | 公式内普通文本       | `\text{其中}`           |
 
 **完整示例 — 二次公式**：
 
 行内写法：
+
 ```html
 <p>二次方程的解为 \( x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \)</p>
 ```
 
 块级写法：
+
 ```html
 \[
 x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
@@ -787,6 +759,7 @@ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 ```
 
 **注意事项**：
+
 - MathJax 脚本必须放在 `<head>` 中，且配置对象必须在脚本引入之前定义
 - 使用 `async` 属性异步加载，不阻塞页面渲染
 - SVG 输出可直接导出为高清图片（右键另存）
@@ -826,7 +799,7 @@ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 | -------- | ----------------------------------------------------------- |
 | 前页底线 | 细线 `border-bottom: 0.75pt solid #000`（表示表格未结束） |
 | 续页顶线 | 粗线 `border-top: 1.5pt solid #000`（标识续表起始）       |
-| 续页表题 | 保留 Table N (Continued)，不重复完整表题               |
+| 续页表题 | 保留 Table N (Continued)，不重复完整表题                    |
 | 续页表头 | 重复 `<thead>` 横表头（含单位注），保证每页可独立阅读     |
 | 表号     | 不重复，仅在首页出现完整表题                                |
 | 表身     | 列对齐一致，不插入正文，栏线齐                              |
