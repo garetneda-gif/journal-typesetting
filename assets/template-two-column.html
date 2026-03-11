@@ -254,11 +254,12 @@
             text-indent: -1.5em;
         }
 
-        /* ============ 并排图片容器 ============ */
+        /* ============ 并排图片容器（Grid 布局，图注上端对齐） ============ */
         .side-by-side-figures {
             column-span: all;
-            display: flex;
-            gap: 4mm;                      /* 图片之间的间距 */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 4mm;                    /* 行间距0（由 margin-top 控制），列间距4mm */
             margin: 5mm 0;
             break-inside: avoid;           /* CSS3：防止并排图片跨页断裂 */
             page-break-inside: avoid;      /* 旧版兼容 */
@@ -266,10 +267,21 @@
         }
 
         .side-by-side-figures figure {
-            flex: 1;                       /* 图片等宽分布 */
-            margin: 0;
-            min-width: 0;
-            -webkit-column-break-inside: avoid; /* WebKit 子元素断裂保护 */
+            display: contents;             /* figure 不产生盒模型，img/figcaption 成为 grid 直接子项 */
+        }
+
+        .side-by-side-figures figure img {
+            grid-row: 1;                   /* 所有图片统一在第1行 */
+            width: 100%; height: auto;
+            object-fit: contain;
+            align-self: end;               /* 图片底部对齐 */
+        }
+
+        .side-by-side-figures figcaption {
+            grid-row: 2;                   /* 所有图注统一在第2行 → 上端对齐 */
+            text-align: justify;
+            margin-top: 2mm;
+            align-self: start;             /* 图注顶部对齐 */
         }
 
         /* ============ 打印模式样式 ============ */

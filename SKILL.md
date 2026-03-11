@@ -606,9 +606,18 @@ question(questions=[{
 
 #### 图注对齐规则（MANDATORY）
 
-- **并排图片（side-by-side-figures）的图注必须 `text-align: justify`**，确保两端对齐
-- 双栏模板 CSS：`figcaption { text-align: justify; }`
+- **并排图片（side-by-side-figures）必须使用 CSS Grid 布局**，确保图注上端对齐（图注从同一水平线开始）
+- 布局原理：`display: grid` + `grid-template-columns: 1fr 1fr`，`figure` 设为 `display: contents`，`img` 固定 `grid-row: 1`（底部对齐 `align-self: end`），`figcaption` 固定 `grid-row: 2`（顶部对齐 `align-self: start`）
+- **禁止使用 `display: flex`**：flex 布局下不同高度的图片会导致图注起始位置不一致
+- 所有图注统一 `text-align: justify`（两端对齐）
 - 单独图片的图注也统一使用 justify
+
+#### 引号标点规则（MANDATORY）
+
+- **标点符号（逗号、句号）必须放在关闭引号的外面**，不可包含在引号内
+- ❌ 错误：`&ldquo;response to hypoxia,&rdquo;`（逗号在引号内）
+- ✅ 正确：`&ldquo;response to hypoxia&rdquo;,`（逗号在引号外）
+- 适用范围：所有使用 `&ldquo;…&rdquo;` 的学术术语引用
 - `ORIGINAL ARTICLE` 所在的 `<div>` 必须使用底部边框线样式：
 
   ```html
