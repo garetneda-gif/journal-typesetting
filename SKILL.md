@@ -603,6 +603,12 @@ question(questions=[{
 - ❌ 错误示例：`Figure 2. Venny Plot`、`Table 1. Patient Demographics`
 - ✅ 正确示例：`Figure 2 Venny Plot`、`Table 1 Patient Demographics`
 - 适用范围：所有 `.fig-caption`、`.table-caption` 元素，以及正文内对图表的编号引用标签
+
+#### 图注对齐规则（MANDATORY）
+
+- **并排图片（side-by-side-figures）的图注必须 `text-align: justify`**，确保两端对齐
+- 双栏模板 CSS：`figcaption { text-align: justify; }`
+- 单独图片的图注也统一使用 justify
 - `ORIGINAL ARTICLE` 所在的 `<div>` 必须使用底部边框线样式：
 
   ```html
@@ -645,7 +651,7 @@ question(questions=[{
 | 4 | CONFLICTS OF INTEREST   | **固定文本**："The authors declare that they have no conflicts of interest."                                                                  |
 | 5 | ETHICS                  | **固定文本**："Not applicable."                                                                                                               |
 | 6 | CONSENT FOR PUBLICATION | **固定文本**："The authors confirm that the work described has not been published before."                                                    |
-| 7 | ORCID                   | 每位作者一行：`姓名: ORCID号` 或 `姓名: Not available`                                                                                          |
+| 7 | ORCID                   | 有 ORCID 的作者写 `姓名: ORCID号`；若全部无 ORCID，仅写一个 `Not available` 即可                                                                                          |
 | 8 | AUTHOR CONTRIBUTION     | 从原文提取；无则留空段落（仍保留标题）                                                                                                              |
 | 9 | REFERENCES              | 参考文献列表                                                                                                                                        |
 
