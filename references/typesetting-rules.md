@@ -26,6 +26,20 @@
 - **双栏 `.two-column` 必须设置** `overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto;`，允许在音节处断词，进一步消除 justify 空白
 - 适用范围：所有正文段落中的数据库链接、工具网址等
 
+## 关键词大小写规则（MANDATORY）
+
+- 首页摘要区 `Keywords:` 标签保留模板写法，后续关键词统一使用分号加空格分隔
+- 普通主题词统一使用小写
+- 双栏版与单栏版必须保持完全一致的关键词文本，不得一处小写、一处 Title Case
+- 仅在大小写本身承载学术语义时保留原样，例如标准基因符号、数据库缩写、专有名词
+- 若原始 Word 文档的关键词存在大小写混排，生成 HTML 前先完成规范化，再写入模板
+
+**示例：**
+
+- ✅ `Keywords: erlotinib; adverse events; FAERS; lung cancer; pancreatic cancer`
+- ❌ `Keywords: Erlotinib, Adverse Events, FAERS, Lung Cancer, Pancreatic Cancer`
+- ⚠️ 例外场景：`Keywords: tcga; hif-1 signaling; TP53`
+
 ## 引号标点规则（MANDATORY）
 
 - **标点符号（逗号、句号）必须放在关闭引号的外面**，不可包含在引号内

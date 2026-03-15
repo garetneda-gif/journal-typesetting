@@ -86,6 +86,8 @@ mcp:
 
 > 完整解析流程（元素识别方法、简短标题规则、用户确认交互）参见 references/docx-parsing.md
 
+- 关键词（`Keywords:`）提取后默认统一规范为小写输出，并使用分号加空格分隔；仅保留专有名词、基因符号或缩写原样确有必要时才例外，并在交付前复核一致性
+
 ---
 
 ## 第2步：收集图片 URL
@@ -122,6 +124,8 @@ mcp:
 ### 步骤3.4：正文排版细节规则（MANDATORY）
 
 > 所有排版细节规则（图注句点、图注对齐、URL 处理、引号标点、封面间距、段落缩进、Back Matter、左栏对齐、MathJax 公式、参考文献缩进、表格跨栏/续表、蛇形布局）参见 references/typesetting-rules.md
+
+- 首页摘要区 `Keywords:` 后的关键词列表统一使用“分号分隔 + 默认小写”的展示规则，避免同一篇文章中出现大小写和分隔符混排
 
 > HTML 结构和 CSS 类说明参见 references/html-structure.md
 
@@ -207,3 +211,5 @@ mcp:
 ## 第7步：最终验证（BLOCKING - 门控机制）
 
 > 完整验证流程（源文件比对验证、比对输出格式、其他检查项）参见 references/validation-checklist.md
+
+- 强制复核 `Keywords:` 行：双栏版与单栏版的关键词内容一致，使用分号分隔，普通词默认小写，语义性缩写按需保留原样
