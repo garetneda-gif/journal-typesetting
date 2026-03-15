@@ -231,9 +231,46 @@ class StyleValidator:
         )
 
         # 检查并排图片布局
-        has_flex_figures = "display:flex" in html or "display: flex" in html
-        if has_flex_figures:
-            has_gap = "gap:5mm" in html or "gap: 5mm" in html or "gap:4mm" in html
+        if "side-by-side-figures" in html:
+            if self.template_type == "two-column":
+                has_grid = ".side-by-side-figures" in html and (
+                    "display: grid" in html or "display:grid" in html
+                )
+                self._check(
+                    "双栏并排图片使用 Grid",
+                    has_grid,
+                    error_msg="双栏并排图片必须使用 display:grid"
+                )
+
+                has_display_contents = "display: contents" in html or "display:contents" in html
+                self._check(
+                    "双栏 figure 使用 display: contents",
+                    has_display_contents,
+                    error_msg="双栏并排图片的 figure 必须使用 display: contents"
+                )
+
+                has_align_end = "align-self: end" in html or "align-self:end" in html
+                self._check(
+                    "双栏图片/图注底部对齐样式",
+                    has_align_end,
+                    error_msg="双栏并排图片必须为 img/figcaption 设置 align-self:end"
+                )
+            else:
+                has_flex_figures = "display:flex" in html or "display: flex" in html
+                self._check(
+                    "单栏并排图片使用 flex",
+                    has_flex_figures,
+                    warning_msg="单栏并排图片通常应使用 flex 容器"
+                )
+
+                has_flex_end = "align-items:flex-end" in html or "align-items: flex-end" in html
+                self._check(
+                    "单栏并排图片底部对齐样式",
+                    has_flex_end,
+                    warning_msg="单栏并排图片建议使用 align-items:flex-end 保持底部对齐"
+                )
+
+            has_gap = "gap:5mm" in html or "gap: 5mm" in html or "gap:4mm" in html or "gap: 4mm" in html
             self._check(
                 "并排图片gap间距",
                 has_gap,

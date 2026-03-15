@@ -40,4 +40,6 @@
 | PubMed 链接       | 已尝试验证（有记录）   | WARN: 未执行 PubMed 验证    |
 | Crossref 链接     | 链接数 >= DOI 提取数   | WARN: Crossref 链接少于预期 |
 | 图片 URL 可访问性 | 随机抽取3张验证200状态 | WARN: 部分图片不可访问      |
+| Playwright 截图验证 | 输出目录下存在 `screenshot/`，每页均有截图，且失败页有修复前后对比截图 | BLOCK: 缺少截图证据 |
+| Playwright 几何验证 | 非最后页无溢出、无超阈值留白，并排图图注底部差值 <= 2px | BLOCK: 返回修复后重跑 |
 | Keywords 格式     | 双栏/单栏一致，使用分号分隔，普通词小写，缩写按语义保留 | BLOCK: 返回修正关键词格式   |

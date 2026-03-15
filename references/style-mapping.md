@@ -227,17 +227,26 @@ figcaption .fig-label {
 ```css
 .side-by-side-figures {
     column-span: all;
-    display: flex;
-    gap: 4mm;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 4mm;
     margin: 5mm 0;
     break-inside: avoid;
     page-break-inside: avoid;
 }
 
 .side-by-side-figures figure {
-    flex: 1;
-    margin: 0;
-    min-width: 0;
+    display: contents;
+}
+
+.side-by-side-figures figure img {
+    grid-row: 1;
+    align-self: end;
+}
+
+.side-by-side-figures figcaption {
+    grid-row: 2;
+    align-self: end;
 }
 ```
 
@@ -260,8 +269,8 @@ figcaption .fig-label {
 ```
 
 **并排比例规则**:
-- 等分：`flex:1` + `flex:1`
-- 主辅图：`flex:1.2` + `flex:0.8`
+- 等分：`grid-template-columns:1fr 1fr`
+- 主辅图：`grid-template-columns:1.2fr 0.8fr`
 - 不并排：单张高度 > 120mm 或数量 >= 3
 
 ---
@@ -426,7 +435,7 @@ a {
 - [ ] 主题色 `#005a8c` 出现在所有应有位置
 - [ ] 字体family为 `'Times New Roman', Times, serif`
 - [ ] 数值单位为 `mm`（不是 `px` 或 `pt`）
-- [ ] 并排图片使用 `display:flex; gap:5mm`
+- [ ] 双栏并排图片使用 `display:grid`，单栏并排图片使用 `display:flex`
 - [ ] 图片标题使用 `font-size:8.5pt; color:#222;`
 - [ ] 图号使用 `font-weight:bold; color:#005a8c;`
 - [ ] 参考文献链接颜色为 `#005a8c`
@@ -497,7 +506,7 @@ figcaption { font-size: 8.5pt; }
 | 二级标题 | `font-size:9.5pt; font-weight:bold` | 同左 | 双:127-133, 单:246 |
 | 正文段落 | `text-indent:1em; margin:0 0 2mm 0` | 同左 | 双:136-139, 单:237 |
 | 图片容器 | `column-span:all; margin:5mm 0` | `margin:5mm 0` | 双:147-172, 单:251-260 |
-| 并排图片 | `.side-by-side-figures` class | inline `display:flex` | 双:232-244, 单:251-260 |
+| 并排图片 | `.side-by-side-figures` class（Grid） | inline `display:flex` | 双:261-286, 单:255-263 |
 | 表格 | `border-top:1.5pt solid #000` | 同左 | 双:196-218, 单:267-280 |
 | 参考文献 | `font-size:8pt; padding-left:1.5em` | 同左 | 双:220-230, 单:286-314 |
 

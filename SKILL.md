@@ -41,7 +41,7 @@ mcp:
    | References/ | `html-structure.md`           | HTML 结构和 CSS 类说明                               |
    |             | `reference-links.md`          | 参考文献链接生成指南                                 |
    |             | `style-mapping.md`            | 样式映射表（元素与CSS对应关系）                      |
-   |             | `pagination-rules.md`         | 分页规则、CP3 布局验证（含 Playwright 自动化）       |
+   |             | `pagination-rules.md`         | 分页规则、CP3 强制布局验证（含 Playwright 截图与几何验证） |
    |             | `typesetting-rules.md`        | 正文排版细节规则（图注、缩进、Back Matter 等）       |
    |             | `troubleshooting.md`          | 常见问题排查 + 大文件写入规则                        |
    |             | `dependency-check.md`         | 依赖检查完整流程                                     |
@@ -70,7 +70,7 @@ mcp:
 | **CP 0** | 步骤0后 | MCP 可用性                                        | 询问用户：继续 (fallback) 或中止 |
 | **CP 1** | 步骤1后 | 标题、作者、摘要已提取                            | 重新解析或手动输入               |
 | **CP 2** | 步骤2后 | 所有图片 URL 格式正确                             | 重新收集                         |
-| **CP 3** | 步骤3后 | 双栏 HTML 无溢出/留白（支持 Playwright 自动验证） | 调整分页重新生成                 |
+| **CP 3** | 步骤3后 | 双栏 HTML 无溢出/留白，且并排图图注底部对齐（必须通过 Playwright 截图与几何验证） | 调整分页重新生成 |
 | **CP 4** | 步骤5后 | 参考文献链接数量符合预期                          | 记录警告但继续                   |
 | **CP 5** | 步骤7   | 通过各项检查                                      | 阻止交付                         |
 
@@ -114,6 +114,8 @@ mcp:
 ### 分页规则
 
 > 分页核心原则、人机协同流程、失败根因分析、内容分析、分割策略、验证检查点参见 references/pagination-rules.md
+
+- 双栏 HTML 生成后，**必须**先执行 Playwright 截图验证与几何测量；若发现底部未对齐、页面溢出或非最后页留白超阈值，必须修复后重跑，未通过 CP3 不得继续后续步骤
 
 ### 步骤3.1-3.3：分页规划与页面创建
 
@@ -202,6 +204,11 @@ mcp:
 
 ```
 /Users/jikunren/Documents/期刊排版/Ferroptosis-Cervical-Cancer/
+├── screenshot/
+│   ├── two-column-page-01.png
+│   ├── two-column-page-03-issue-before.png
+│   ├── two-column-page-03-issue-after.png
+│   └── single-column-preview.png
 ├── two-column-Ferroptosis-Cervical-Cancer.html
 └── single-column-Ferroptosis-Cervical-Cancer.html
 ```
@@ -213,3 +220,4 @@ mcp:
 > 完整验证流程（源文件比对验证、比对输出格式、其他检查项）参见 references/validation-checklist.md
 
 - 强制复核 `Keywords:` 行：双栏版与单栏版的关键词内容一致，使用分号分隔，普通词默认小写，语义性缩写按需保留原样
+- 强制附带 Playwright 验证结果：至少包含存放于输出目录 `screenshot/` 下的逐页截图、溢出/留白几何报告，以及并排图片图注底部对齐测量结果

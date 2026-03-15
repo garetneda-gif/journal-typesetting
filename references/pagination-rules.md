@@ -44,14 +44,14 @@
    - 检查页数是否达到预期最小值（§CP3.0 有完整代码）
    - ⚠️ 任何一项失败 → **停止验证，重新生成 HTML**
 4. **【验证】布局检查（CP3）**
-   - **自动验证（推荐）**：AI 使用 Playwright MCP 按本文档 § Playwright 自动布局验证 工作流自动测量溢出/留白，输出报告后自行修复
-   - **人工验证（备用）**：用户在浏览器中逐页检查分页效果
+   - **自动验证（强制）**：AI 必须使用 Playwright MCP 按本文档 § Playwright 自动布局验证 工作流逐页截图，并测量溢出/留白/图注底部对齐几何数据，输出报告后自行修复
+   - **人工验证（仅补充）**：用户在浏览器中逐页复核截图结果，但不能替代自动验证
    检查点：详见下方风险标注规则。
 
 **Phase 3: 通过playwright-mcp截图每页并修正问题页面**
 1. 确认问题页面。
 2. **【问题识别】分页问题处理**
-   - **自动化路径**：AI 读取 Playwright 验证报告，自动定位溢出/留白页面，调整 `<p class="column-break">` 位置
+   - **自动化路径**：AI 读取 Playwright 验证报告，自动定位溢出/留白页面及图注未底部对齐的图片组，按问题类型修复后重新截图验证
    - **人工反馈路径**：用户手动反馈问题（如"第 3 页溢出"），AI 根据反馈调整
 
 **Phase 4: AI精准修复**
@@ -80,6 +80,8 @@
   - 溢出任意值 → FAILURE（必须修复，所有页适用）
   - 留白 ≥30mm (113px) → FAILURE（必须压缩，**最后一页除外**）
   - 留白 15-30mm (57-113px) → WARNING（建议压缩，**最后一页除外**）
+  - 并排图片图注底部对齐差值 > 2px → FAILURE（必须修复）
+  - 并排图片图注底部对齐差值 1-2px → WARNING（建议修正后再截图）
   - **最后一页**：留白不限，参考文献数量不可控，任意留白均为 PASS
 - 人工验证经验值：
   - 溢出 >10mm：标注必须修复
@@ -416,8 +418,8 @@ validate_pagination(output_file)
 | 条件                 | 判断标准                           | 处理方式                      |
 | -------------------- | ---------------------------------- | ----------------------------- |
 | **并排条件**   | 连续出现2张图片，且单张高度 < 80 mm | 使用并排布局                  |
-| **等分比例**   | 两张图片内容同等重要               | `flex: 1` 等分              |
-| **不等分比例** | 一张主图一张辅图（如流程图+小图）  | `flex: 1.2` + `flex: 0.8` |
+| **等分比例**   | 两张图片内容同等重要               | `grid-template-columns: 1fr 1fr` |
+| **不等分比例** | 一张主图一张辅图（如流程图+小图）  | `grid-template-columns: 1.2fr 0.8fr` |
 | **禁止并排**   | 单张高度 > 120 mm 或图片数量 >=3    | 各自独立放置                  |
 | **跨栏要求**   | 所有图片必须跨越双栏               | 使用 `column-span: all`     |
 
@@ -427,23 +429,32 @@ validate_pagination(output_file)
 /* 基础并排容器 */
 .side-by-side-figures {
   column-span: all;              /* 跨双栏 */
-  display: flex;
-  gap: 4mm;                      /* 图片间距 */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 4mm;                    /* 行间距0，列间距4mm */
   margin: 5mm 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .side-by-side-figures figure {
-  flex: 1;                       /* 默认等分 */
-  margin: 0;
-  min-width: 0;                  /* 允许收缩 */
+  display: contents;
 }
 
 .side-by-side-figures figure img {
+  grid-row: 1;
   width: 100%;
   height: auto;
   max-height: 120mm;             /* ⚠️ 防止高度溢出：限制为页面高度的一半 */
   object-fit: contain;           /* 保持比例 */
   display: block;
+  align-self: end;               /* 图片底部对齐 */
+}
+
+.side-by-side-figures figcaption {
+  grid-row: 2;
+  margin-top: 2mm;
+  align-self: end;               /* 图注底部对齐 */
 }
 ```
 
@@ -495,11 +506,153 @@ figure, .side-by-side-figures, .table-wrapper {
 
 ---
 
+## Playwright 自动布局验证（MANDATORY）
+
+### 验证目标
+
+- 逐页截图，确认页面级布局与肉眼结果一致
+- 几何测量每页内容区域，检测溢出与留白
+- 几何测量每个 `.side-by-side-figures` 内的 `figcaption` 底边，检测是否底部对齐
+
+### 必跑顺序
+
+1. 生成完整双栏 HTML
+2. 执行 CP3.0 文件完整性核验
+3. 用 Playwright 打开本地 HTML
+4. 等待字体与布局稳定
+5. 截取每一页截图
+6. 运行几何测量脚本并输出结构化报告
+7. 若任一页失败，修复 HTML 后回到第 3 步重跑
+8. 只有全部通过后，才允许继续步骤4/5/6/7
+
+### Playwright 几何测量要点
+
+**每页必须输出以下字段：**
+
+- `page_index`
+- `overflow_px`
+- `whitespace_px`
+- `is_last_page`
+- `side_by_side_groups`
+- `status`
+
+**每个并排图片组必须输出以下字段：**
+
+- `group_index`
+- `caption_bottoms_px`
+- `caption_bottom_delta_px`
+- `image_bottoms_px`
+- `image_bottom_delta_px`
+- `status`
+
+### Playwright `evaluate()` 示例
+
+```javascript
+() => {
+  const pages = [...document.querySelectorAll('.page')];
+  return pages.map((page, pageIndex) => {
+    const content = page.querySelector('.page-content') || page;
+    const footer = page.querySelector('.page-footer');
+    const contentRect = content.getBoundingClientRect();
+    const footerTop = footer ? footer.getBoundingClientRect().top : page.getBoundingClientRect().bottom;
+
+    const measurableChildren = [...content.querySelectorAll(':scope > *')].filter((el) => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    });
+
+    const contentBottom = measurableChildren.length
+      ? Math.max(...measurableChildren.map((el) => el.getBoundingClientRect().bottom))
+      : contentRect.top;
+
+    const overflowPx = Math.max(0, contentBottom - footerTop);
+    const whitespacePx = Math.max(0, footerTop - contentBottom);
+
+    const sideBySideGroups = [...page.querySelectorAll('.side-by-side-figures')].map((group, groupIndex) => {
+      const captions = [...group.querySelectorAll('figcaption')].map((el) => el.getBoundingClientRect().bottom);
+      const images = [...group.querySelectorAll('img')].map((el) => el.getBoundingClientRect().bottom);
+      const captionDelta = captions.length > 1 ? Math.max(...captions) - Math.min(...captions) : 0;
+      const imageDelta = images.length > 1 ? Math.max(...images) - Math.min(...images) : 0;
+
+      return {
+        group_index: groupIndex + 1,
+        caption_bottoms_px: captions,
+        caption_bottom_delta_px: captionDelta,
+        image_bottoms_px: images,
+        image_bottom_delta_px: imageDelta,
+        status: captionDelta > 2 ? 'FAILURE' : captionDelta > 1 ? 'WARNING' : 'PASS'
+      };
+    });
+
+    const isLastPage = pageIndex === pages.length - 1;
+    const pageStatus =
+      overflowPx > 0
+        ? 'FAILURE'
+        : !isLastPage && whitespacePx >= 113
+          ? 'FAILURE'
+          : !isLastPage && whitespacePx >= 57
+            ? 'WARNING'
+            : sideBySideGroups.some((group) => group.status === 'FAILURE')
+              ? 'FAILURE'
+              : sideBySideGroups.some((group) => group.status === 'WARNING')
+                ? 'WARNING'
+                : 'PASS';
+
+    return {
+      page_index: pageIndex + 1,
+      overflow_px: overflowPx,
+      whitespace_px: whitespacePx,
+      is_last_page: isLastPage,
+      side_by_side_groups: sideBySideGroups,
+      status: pageStatus
+    };
+  });
+}
+```
+
+### 截图要求（BLOCKING）
+
+- 所有截图统一保存在双栏、单栏 HTML 所在目录下的 `screenshot/` 文件夹中
+- 若目录不存在，先创建 `screenshot/`，再写入截图
+- 必须对每个 `.page` 截图，不允许只截全页长图
+- 若某页失败，必须额外对失败页中对应的 `.side-by-side-figures` 或页内容区做局部截图
+- 交付前必须能提供“问题前截图 + 修复后截图”对比
+
+**推荐命名：**
+
+- `two-column-page-01.png`
+- `two-column-page-03-issue-before.png`
+- `two-column-page-03-issue-after.png`
+- `two-column-page-03-group-01.png`
+- `single-column-preview.png`
+
+### 失败后的修复策略
+
+**1. 图注底部未对齐**
+
+- 双栏版：回退到模板中的 Grid 写法，确保 `.side-by-side-figures` 使用 `display:grid`、`figure` 使用 `display:contents`、`img` 与 `figcaption` 都带 `align-self:end`
+- 若仍失败：检查是否混入额外 `margin-bottom`、不同 `line-height`、或某个 `figcaption` 被包裹在额外块级元素中
+- 修复后必须重跑 Playwright 几何验证，直到 `caption_bottom_delta_px <= 2`
+
+**2. 页面溢出**
+
+- 优先将页尾最后一个段落、表格或图片组移至下一页
+- 若是表格导致，按续表规则切分，不允许简单压缩到不可读
+- 溢出页修复后，必须同时复核后续级联页
+
+**3. 非最后页留白过多**
+
+- 优先从下一页拉入一个完整段落、一个小节标题加首段，或一个图片组
+- 若属于表格页留白，优先拉入后续文字，不要盲调表格行高
+- 多页同时留白时，才允许依据实测几何结果迭代微调行距
+
+---
+
 ## 验证检查点
 
-### ✅ CP 3检查点：验证无溢出/留白
+### ✅ CP 3检查点：验证无溢出/留白且图注底部对齐
 
-**关键验证项（必须全部通过）：**
+**关键验证项（必须全部通过，且必须基于 Playwright 截图与几何报告）：**
 
 ```python
 def validate_pagination(html_file):
@@ -550,7 +703,7 @@ def validate_pagination(html_file):
 validate_pagination('双栏分页-XXX.html')
 ```
 
-**手动验证步骤：**
+**手动验证步骤（仅作为 Playwright 失败后的辅助手段）：**
 
 1. **在浏览器中打开 HTML 文件**
 
@@ -602,6 +755,9 @@ if validation_failed:
 - [ ] 每页字数在合理范围（见上述标准）
 - [ ] 无任何页面留白>50 mm
 - [ ] 无任何内容溢出页面边界
+- [ ] 已完成逐页 Playwright 截图
+- [ ] 已输出逐页几何报告（overflow/whitespace）
+- [ ] 所有并排图片图注底部对齐差值 <= 2px
 - [ ] 在浏览器中打开显示正常
 - [ ] 大表格已按步骤3.4处理（压缩或续表）
 - [ ] 所有续表包含" (Continued)"标题和重复表头
