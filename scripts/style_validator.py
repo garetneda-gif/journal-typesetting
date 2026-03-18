@@ -62,6 +62,7 @@ class StyleValidator:
         self._validate_figure_styles(generated_html)
         self._validate_table_styles(generated_html)
         self._validate_reference_styles(generated_html)
+        self._validate_title_case(generated_html)
 
         # 生成报告
         return self._generate_report()
@@ -335,6 +336,48 @@ class StyleValidator:
                 has_link_color,
                 warning_msg="链接颜色应使用 #005a8c"
             )
+
+    def _validate_title_case(self, html):
+        """验证文章主标题是否为 sentence case"""
+        print("\n## 标题大小写检查")
+
+        # 提取 #article-title 内容
+        title_match = re.search(
+            r'id=["\']article-title["\'][^>]*>(.*?)</div>',
+            html, re.DOTALL | re.IGNORECASE
+        )
+        if not title_match:
+            print("  ℹ️  未检测到 #article-title，跳过标题大小写检查")
+            return
+
+        title_text = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
+        if not title_text:
+            return
+
+        words = title_text.split()
+        # 检查是否全大写（ALL CAPS）
+        all_caps = all(w.isupper() or not w.isalpha() for w in words)
+        self._check(
+            "标题非全大写",
+            not all_caps,
+            error_msg="标题为全大写，必须转换为 sentence case"
+        )
+
+        # 检查非首词是否存在不必要的大写（排除专有名词）
+        if len(words) > 1 and not all_caps:
+            suspicious = []
+            for w in words[1:]:
+                clean = w.rstrip(".,;:!?")
+                if clean and clean[0].isupper() and clean.lower() == clean.lower() and not clean.isupper():
+                    suspicious.append(clean)
+            if suspicious:
+                self._check(
+                    "标题 sentence case 格式",
+                    False,
+                    warning_msg=f"疑似 Title Case 词: {', '.join(suspicious[:5])}（若为专有名词可忽略）"
+                )
+            else:
+                self._check("标题 sentence case 格式", True)
 
     def _generate_report(self):
         """生成验证报告"""

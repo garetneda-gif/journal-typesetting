@@ -26,6 +26,29 @@
 - **双栏 `.two-column` 必须设置** `overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto;`，允许在音节处断词，进一步消除 justify 空白
 - 适用范围：所有正文段落中的数据库链接、工具网址等
 
+## 文章主标题大小写规则（MANDATORY）
+
+- **封面主标题（`#article-title`）必须使用 sentence case**：仅大写首词首字母和专有名词，其余词全部小写
+- 适用范围：仅限封面上的文章大标题，不涉及章节标题（`h1.section-title`，已有 `text-transform: uppercase`）
+- 冒号后首词大写（遵循 AMA 风格），破折号后不大写
+- 若原始 Word 标题为全大写（ALL CAPS），**必须人工确认专有名词后再转换**，禁止盲目自动转换
+
+**保留大写的例外情况：**
+
+| 类别 | 示例 |
+|------|------|
+| 标准基因/蛋白符号 | TP53, BRCA1, EGFR, TGFB1, TIMP1, HIF-1α |
+| 数据库/工具名 | TCGA, GEO, KEGG, FAERS, STRING |
+| 学术缩写 | miRNA, lncRNA, ceRNA, ssGSEA, LASSO |
+| 疾病专有缩写 | ccRCC, NSCLC, HCC |
+| 化学/药物缩写 | TKI, PD-L1 |
+
+**示例：**
+
+- ✅ `Identification of TGFB1 and TIMP1 as diagnostic biomarkers in ccRCC through bioinformatics analysis`
+- ❌ `Identification of TGFB1 and TIMP1 as Diagnostic Biomarkers in ccRCC Through Bioinformatics Analysis`（Title Case，错误）
+- ❌ `IDENTIFICATION OF TGFB1 AND TIMP1 AS DIAGNOSTIC BIOMARKERS IN CCRCC THROUGH BIOINFORMATICS ANALYSIS`（全大写，错误）
+
 ## 关键词大小写规则（MANDATORY）
 
 - 首页摘要区 `Keywords:` 标签保留模板写法，后续关键词统一使用分号加空格分隔

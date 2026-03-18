@@ -20,6 +20,10 @@ class JournalHTMLGenerator:
         self.image_urls = image_urls
         self.short_title = short_title
 
+        # 标题 sentence case 规范化
+        if 'title' in self.data:
+            self.data['title'] = self._to_sentence_case(self.data['title'])
+
         # 期刊配置
         self.journal_config = {
             "name": "MedBA Medicine",
@@ -91,6 +95,55 @@ class JournalHTMLGenerator:
 
         # 写入文件
         return self._write_html_file(output_path, html)
+
+    # 医学/生物学专有名词白名单（大小写敏感，保留原样）
+    PROPER_NOUNS = {
+        # 基因/蛋白符号
+        "TP53", "BRCA1", "BRCA2", "EGFR", "TGFB1", "TIMP1", "VEGF", "HER2",
+        "KRAS", "BRAF", "ALK", "ROS1", "MET", "PTEN", "PIK3CA", "AKT",
+        "mTOR", "HIF-1", "HIF-1α", "PD-L1", "PD-1", "CTLA-4", "JAK2",
+        # 数据库/工具
+        "TCGA", "GEO", "KEGG", "FAERS", "STRING", "GEPIA", "TIMER",
+        "UALCAN", "cBioPortal", "DAVID", "GSEA", "ssGSEA", "WGCNA",
+        # 学术缩写
+        "miRNA", "lncRNA", "ceRNA", "circRNA", "siRNA", "mRNA", "DNA", "RNA",
+        "LASSO", "ROC", "AUC", "OS", "DFS", "PFS", "HR", "CI", "OR",
+        "PCR", "qRT-PCR", "ELISA", "IHC", "WB", "IF",
+        # 疾病缩写
+        "ccRCC", "NSCLC", "HCC", "CRC", "GBM", "AML", "ALL", "NHL",
+        "LUAD", "LUSC", "KIRC", "KIRP", "BRCA", "PRAD", "STAD",
+        # 药物/治疗
+        "TKI", "ICB", "CAR-T", "FOLFOX", "FOLFIRI",
+    }
+
+    def _to_sentence_case(self, title: str) -> str:
+        """
+        将标题转换为 sentence case：仅大写首词和专有名词。
+        冒号后首词大写（AMA 风格），破折号后不大写。
+        """
+        if not title or not title.strip():
+            return title
+
+        words = title.split()
+        result = []
+        capitalize_next = True  # 首词大写
+
+        for word in words:
+            # 检查是否为白名单专有名词（精确匹配去标点后的词）
+            clean_word = word.rstrip(".,;:!?")
+            if clean_word in self.PROPER_NOUNS:
+                result.append(word)
+            elif capitalize_next:
+                result.append(word[0].upper() + word[1:].lower() if len(word) > 1 else word.upper())
+                capitalize_next = False
+            else:
+                result.append(word.lower())
+
+            # 冒号后首词大写
+            if word.endswith(":"):
+                capitalize_next = True
+
+        return " ".join(result)
 
     def _load_template(self, template_type):
         """加载HTML模板"""

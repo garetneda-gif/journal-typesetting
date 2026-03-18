@@ -35,7 +35,7 @@
 | 类名 | 用途 |
 |------|------|
 | `#cover` | 封面容器 |
-| `#article-title` | 文章标题 |
+| `#article-title` | 文章标题（内容必须为 sentence case：仅首词和专有名词大写） |
 | `#article-authors` | 作者列表 |
 | `#front-matter` | 前置信息区（单位+摘要） |
 | `#abstract-box` | 摘要框 |
