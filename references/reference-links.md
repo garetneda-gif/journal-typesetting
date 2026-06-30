@@ -90,13 +90,91 @@ URL: https://scholar.google.com/scholar?q=Estimates+of+worldwide+burden+of+cance
 ## HTML输出格式
 
 ```html
-<div style="margin-bottom:2mm;padding-left:1.5em;text-indent:-1.5em;font-size:8pt;line-height:1.3;">
-  [1] Author Name, et al. Article Title[J]. Journal Name, Year,Volume(Issue):Pages.<br>
+<div style="margin-bottom:2mm;padding-left:0;text-indent:0;font-size:8pt;line-height:1.3;">
+  [1] Surname AB, Surname CD, Surname EF, et al. Article title. J Abbrev. Year;Volume(Issue):Pages.<br>
   <a href="https://pubmed.ncbi.nlm.nih.gov/12345678/" target="_blank" style="color:#005a8c;text-decoration:none;">PubMed</a> | 
   <a href="https://scholar.google.com/scholar?q=Article+Title" target="_blank" style="color:#005a8c;text-decoration:none;">Google Scholar</a> | 
   <a href="https://doi.org/10.xxxx/xxxxx" target="_blank" style="color:#005a8c;text-decoration:none;">Crossref</a>
 </div>
 ```
+
+## 参考文献正文格式规范（MANDATORY）
+
+参考文献正文不得直接沿用 Word 原稿中的混杂格式。添加 PubMed / Google Scholar / Crossref 链接前，必须先把每条参考文献统一为期刊 Vancouver 风格。此步骤是正文规范化，不是简单给原文追加链接。
+
+**统一格式：**
+
+```text
+[n] Authors. Title. Journal. Year;Volume(Issue):Pages/article-number.
+```
+
+**标准示例：**
+
+```text
+[1] Gaffney DK, Hashibe M, Kepka D, Maurer KA, Werner TL. Too many women are dying from cervix cancer: problems and solutions. Gynecol Oncol. 2018;151(3):547-554.
+[2] Goodman A. HPV testing as a screen for cervical cancer. BMJ. 2015;350:h2372.
+[3] Dennis G Jr, Sherman BT, Hosack DA, et al. DAVID: database for annotation, visualization, and integrated discovery. Genome Biol. 2003;4(9):R60.
+```
+
+**作者格式：**
+
+- 作者写作 `Surname Initials`，多个作者用逗号分隔。
+- 达到原稿或期刊规则要求使用 `et al.` 时，全篇保持同一策略；本刊统一采用“超过 3 位作者时列前 3 位后加 `et al.`，3 位及以下全部列出”。
+- 不得同一列表中混用 `Lastname F.`, `Lastname F`, `Lastname, F.` 等不同作者格式。
+- 不得保留 APA 风格作者格式、`&`、`and` 夹在作者列表中、作者名倒置错误或首字母中间点混排。
+
+**题名格式：**
+
+- 题名使用 sentence case；仅首词、专有名词、缩写和标准术语保留大写。
+- 不得把原稿中的随机 Title Case、全大写或大小写混排直接带入终稿。
+- 删除非题名内容和装饰符号，如 `☆`、`[J]`、多余句点、数据库导出标记；保留基因符号、数据库名和标准缩写的规范大小写。
+
+**期刊名格式：**
+
+- 期刊名必须全篇一致使用规范缩写或目标期刊指定写法。
+- 常见缩写示例：`BMJ`、`Nat Rev Gastroenterol Hepatol`、`JAMA Netw Open`、`Int J Epidemiol`。
+- 不得出现 `Bmj`、`Nature reviews Gastroenterology & hepatology` 这类大小写或全称/缩写混杂。
+- 优先使用 PubMed/NLM 或 Crossref 给出的期刊缩写；无法确认时使用全篇一致的期刊通用缩写，不要同一列表内混用全称和缩写。
+
+**年份卷页格式：**
+
+- 使用 `Year;Volume(Issue):Pages.`，如 `2020;324(24):2565-2574.`；无期号时使用 `Year;Volume:Pages.`。
+- 缺卷、期、页码或文章号时，必须先查询 PubMed、Crossref、DOI resolver 或出版社页面补齐；不能把原稿的缺失字段原样带入终稿。
+- 电子期刊没有传统页码时，使用文章号或电子页码作为页码位，如 `2015;350:h2372.`、`2016;27(4):e43.`、`2003;4(9):R60.`、`2020;20(1):587.`。
+- 若来源只可高置信确认年份和卷号，无法确认页码/文章号，则保留最完整可核验信息并在最终报告列明该条“无法补齐页码/文章号”的原因。
+
+**DOI 与正文关系：**
+
+- DOI 不属于双栏 PDF 版 References 正文的必填展示字段；单栏版可通过 Crossref 链接承载 DOI。
+- 若目标期刊或用户明确要求 DOI 入正文，统一写作 `doi: 10.xxxx/xxxxx.`，不得混用 `DOI:`、`https://doi.org/...` 和裸 DOI 多种格式。
+- 禁止臆造 DOI/PMID；只有标题、年份、首作者和期刊能高置信匹配时才写入 DOI/PubMed 链接。
+
+**双栏/单栏一致性：**
+
+- 双栏版和单栏版的 References 正文必须逐条一致。
+- 单栏连续版仅在同一条 Vancouver 正文后追加 `PubMed | Google Scholar | Crossref` 链接。
+- 本地预览文件若存在，也必须同步同一套参考文献正文，避免预览版与终稿不一致。
+- 双栏分页版拆分 References 后必须保留编号严格递增且连续，不得出现 `[22] [21] [20] [23]` 这类重排错误。
+- 验证 References 时必须同时检查 DOM 和可视区：每条参考文献不仅要存在于 HTML 中，还必须通过 Playwright 截图或元素边界测量确认没有被分页容器、`overflow:hidden` 或页脚裁切隐藏。
+
+**禁止：**
+
+- ❌ 直接输出 Word 原文参考文献。
+- ❌ 同一 References 中作者格式、题名大小写、期刊缩写风格、年份卷页标点不一致。
+- ❌ 在双栏版和单栏版使用不同参考文献正文。
+- ❌ 把缺页码、缺卷号、错误年份或错误期刊名当作“原文如此”直接保留。
+- ❌ 低置信 Crossref/PubMed 命中后仍强行补 DOI、PMID 或页码。
+
+## 参考文献规范化流程（MANDATORY）
+
+1. 从原稿提取参考文献总数和原始文本，保留编号顺序。
+2. 对每条参考文献抽取标题、首作者、年份、期刊、卷期页、DOI。
+3. 优先用 DOI 或 PubMed 精确匹配；无 DOI 时用标题 + 首作者 + 年份在 PubMed/Crossref 检索。
+4. 只有标题相似度 >= 80%、年份一致或可解释、首作者/期刊基本一致时，才使用检索结果补全 DOI、PMID、期刊缩写、卷期页码或文章号。
+5. 将正文统一改写为 Vancouver：作者、题名、期刊缩写、年份卷期页、句点。
+6. 对双栏、单栏、本地预览全部写入同一套正文；单栏再追加可用链接。
+7. 双栏分页后检查每条 References 的编号顺序和可见性，确认编号连续递增且每条真实显示在页面可视区内。
+8. 最终报告必须记录：参考文献总数、已补齐页码/文章号的条目、Google Scholar/PubMed/Crossref 链接数、跳过 DOI/PMID 的原因、References 编号连续性和可见性检查结果。
 
 ## 缺失链接处理
 
@@ -227,27 +305,27 @@ def generate_scholar_link(reference_text):
 
 ### 链接输出格式
 
-#### 双栏分页版（DOI 蓝色链接，无元数据行）
+#### 双栏分页版（纯 Vancouver 正文，无元数据行）
 
 ```html
-<!-- 有DOI的参考文献 -->
-<div>[1] Ferlay J, Shin HR, Bray F, et al. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008[J]. Int J Cancer, 2010,127(12):2893-917. DOI: <a href="https://doi.org/10.1002/ijc.25516" target="_blank" style="color:#005a8c;text-decoration:none;">10.1002/ijc.25516</a>.</div>
+<!-- 有 DOI 的参考文献；双栏正文仍保持纯 Vancouver 文本 -->
+<div>[1] Ferlay J, Shin HR, Bray F, Forman D, Mathers C, Parkin DM. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008. Int J Cancer. 2010;127(12):2893-2917.</div>
 
-<!-- 无DOI的参考文献（不附加DOI文本） -->
-<div>[16] Wikipedia contributors. Adverse event. 2025. Available from: https://en.wikipedia.org/wiki/Adverse_event.</div>
+<!-- 电子文章号 -->
+<div>[2] Goodman A. HPV testing as a screen for cervical cancer. BMJ. 2015;350:h2372.</div>
 ```
 
 **规则：**
-- ✅ 每条有 DOI 的参考文献末尾添加 `DOI: <a href="..." style="color:#005a8c;text-decoration:none;">10.xxxx/xxxxx</a>.`
-- ✅ DOI 链接文本为蓝色（`#005a8c`），无下划线
-- ❌ 双栏版不添加 PubMed/Scholar/Crossref 元数据行（分页空间有限）
-- ❌ 无 DOI 的参考文献不附加 DOI 文本
+- ✅ 双栏版 References 正文只输出统一后的 Vancouver 文本，优先保证 PDF 排版稳定。
+- ✅ 有 DOI 的条目不需要在双栏正文重复写 DOI；DOI 通过单栏 Crossref 链接承载。
+- ❌ 双栏版不添加 PubMed/Scholar/Crossref 元数据行。
+- ❌ 不把未核验 DOI、PMID 或检索链接塞入双栏正文。
 
-#### 单栏连续版（DOI 蓝色链接 + 元数据行）
+#### 单栏连续版（同一 Vancouver 正文 + 元数据行）
 
 ```html
-<div style="margin-bottom:2.5mm;padding-left:1.5em;text-indent:-1.5em;">
-  [1] Ferlay J, Shin HR, Bray F, et al. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008[J]. Int J Cancer, 2010,127(12):2893-917. DOI: <a href="https://doi.org/10.1002/ijc.25516" target="_blank" style="color:#005a8c;text-decoration:none;">10.1002/ijc.25516</a>.<br>
+<div style="margin-bottom:2.5mm;padding-left:0;text-indent:0;">
+  [1] Ferlay J, Shin HR, Bray F, Forman D, Mathers C, Parkin DM. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008. Int J Cancer. 2010;127(12):2893-2917.<br>
   <a href="https://pubmed.ncbi.nlm.nih.gov/21351269/" target="_blank" style="color:#005a8c;text-decoration:none;">PubMed</a> |
   <a href="https://scholar.google.com/scholar?q=Ferlay+GLOBOCAN+cancer+2008" target="_blank" style="color:#005a8c;text-decoration:none;">Google Scholar</a> |
   <a href="https://doi.org/10.1002/ijc.25516" target="_blank" style="color:#005a8c;text-decoration:none;">Crossref</a>
@@ -255,8 +333,8 @@ def generate_scholar_link(reference_text):
 ```
 
 **规则：**
-- ✅ DOI 同样以蓝色链接显示在参考文献正文末尾
-- ✅ 元数据链接（PubMed | Scholar | Crossref）在下一行显示
+- ✅ 单栏版参考文献正文与双栏版逐条一致。
+- ✅ 元数据链接（PubMed | Google Scholar | Crossref）在下一行显示。
 - ✅ 只显示可用的链接，缺失的不显示
 
 ### 第5.5步：链接批量验证（使用 verify_links. Py 脚本）

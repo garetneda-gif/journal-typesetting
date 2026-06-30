@@ -110,7 +110,7 @@ div.page
 1. **封面页**: 固定结构，不分割
 2. **新章节**: 剩余空间<80mm时开新页
 3. **图片**: 高度>60%剩余空间时，前置分页
-4. **表格**: 优先压缩间距（line-height/padding/font-size/margin）使其在当前页内；压缩仍不够时才跨页分割，续表标注 "Table N. (Continued)" 并重复表头
+4. **表格**: 优先小幅压缩间距（line-height/padding/font-size/margin）使其在当前页内；不得把表格拉伸或压缩到肉眼异常；压缩仍不够时才跨页分割，续表标注 "Table N (Continued)" 并重复表头。References 跨页不使用 continued 标题，直接接序号。
 5. **段落**: 保持至少3行在同一页
 
 ### 分页实现
@@ -125,8 +125,8 @@ div.page
 
 ### 白空间容忍
 
-- 页底最大留白: 30mm
-- 超过30mm时，考虑提前分页或调整内容
+- 非最后页页底留白：`whitespace_px < 30px` 为 PASS，`30px <= whitespace_px < 57px` 为 WARNING，`whitespace_px >= 57px` 为 FAILURE
+- 调整留白时优先重排内容和 S 型灌版；禁止用夸张表格行高、单元格 padding、空白块或异常行距填空
 
 ## 双栏 vs 单栏
 
@@ -234,4 +234,4 @@ ACKNOWLEDGMENTS 首节 margin-top:12mm，其余 7 节 margin-top:8mm。
 | CONFLICTS OF INTEREST | The authors declare that they have no conflicts of interest. |
 | ETHICS | Not applicable. |
 | CONSENT FOR PUBLICATION | The authors confirm that the work described has not been published before. |
-| ORCID（无 ORCID） | 姓名: Not available |
+| ORCID（无 ORCID） | Not available. |

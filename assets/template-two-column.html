@@ -106,9 +106,17 @@
             column-gap: var(--column-gap);
             column-fill: auto;             /* 顺序填充，避免跨栏元素被压到底部 */
             text-align: justify;           /* 两端对齐 */
-            overflow-wrap: anywhere;       /* URL 等长文本可在任意位置断行 */
-            hyphens: auto;                 /* 允许音节处断词，消除 justify 空白 */
-            -webkit-hyphens: auto;
+            overflow-wrap: normal;         /* 正文不任意断词 */
+            word-break: normal;
+            hyphens: none;                 /* 禁止自动短横线断词 */
+            -webkit-hyphens: none;
+        }
+
+        .two-column a,
+        .two-column .doi,
+        .two-column .url {
+            overflow-wrap: anywhere;       /* 仅 URL/DOI 等长串允许强制换行 */
+            word-break: break-word;
         }
 
         /* ============ 跨栏元素 ============ */
@@ -253,8 +261,8 @@
 
         .references div {
             margin-bottom: 2mm;
-            padding-left: 1.5em;           /* 悬挂缩进 */
-            text-indent: -1.5em;
+            padding-left: 0;
+            text-indent: 0;
         }
 
         /* ============ 并排图片容器（Grid 布局，图注上端对齐） ============ */
@@ -393,7 +401,7 @@
                         
                         <!-- 关键词 -->
                         <div style="margin-top:2mm;">
-                            <span style="font-weight:bold;">Keywords:</span> Cervical cancer, Gene signature, Prognostic, TCGA; Ferroptosis, Overall survival
+                            <span style="font-weight:bold;">Keywords:</span> Cervical cancer, gene signature, prognostic, TCGA, ferroptosis, overall survival
                         </div>
                     </div>
                 </div>
@@ -432,11 +440,11 @@
         <!-- ============ 并排图片示例（跨栏） ============ -->
         <div class="side-by-side-figures">
             <figure id="fig-1">
-                <img src="https://medbam.org/assets/Ferroptosis-Cervical-Cancer/Figure 1.png" alt="Figure 1">
+                <img src="https://medbam.org/assets/Ferroptosis-Cervical-Cancer/Figure%201.png" alt="Figure 1">
                 <figcaption><span class="fig-label">Figure 1</span> The flowchart of the study.</figcaption>
             </figure>
             <figure id="fig-2">
-                <img src="https://medbam.org/assets/Ferroptosis-Cervical-Cancer/Figure 2.png" alt="Figure 2">
+                <img src="https://medbam.org/assets/Ferroptosis-Cervical-Cancer/Figure%202.png" alt="Figure 2">
                 <figcaption><span class="fig-label">Figure 2</span> Venny Plot.</figcaption>
             </figure>
         </div>
@@ -480,7 +488,7 @@
     <div class="page-header">WANG ET AL.</div>
     <div class="page-content two-column">
         <div class="table-wrapper">
-            <div class="table-caption"><span class="tbl-label">Table 1.</span> (Continued)</div>
+            <div class="table-caption"><span class="tbl-label">Table 1</span> (Continued)</div>
             <table style="font-size:7.5pt;line-height:1.25;">
                 <thead>
                     <tr>
@@ -552,11 +560,11 @@
         
         <!-- ============ 参考文献列表 ============ -->
         <div class="references">
-            <!-- 双栏模板规范：文献末尾显示 DOI（蓝色链接），不附加 PubMed/Scholar/Crossref 元数据行 -->
-            <!-- 文献编号使用方括号，如 [1] [2] [3]；DOI 放在每条文献末尾 -->
-            <div>[1] Ferlay J, Shin H R, Bray F, et al. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008[J]. Int J Cancer, 2010,127(12):2893-2917. DOI: <a href="https://doi.org/10.1002/ijc.25516" target="_blank">10.1002/ijc.25516</a>.</div>
-            <div>[2] Bhatla N, Singhal S. Primary HPV screening for cervical cancer[J]. Best Pract Res Clin Obstet Gynaecol, 2020,65:98-108. DOI: <a href="https://doi.org/10.1016/j.bpobgyn.2020.02.008" target="_blank">10.1016/j.bpobgyn.2020.02.008</a>.</div>
-            <div>[3] Ortiz-de la Tabla V, Gutierrez F. Cervicitis: Etiology, diagnosis and treatment[J]. Enferm Infecc Microbiol Clin (Engl Ed), 2019,37(10):661-667. DOI: <a href="https://doi.org/10.1016/j.eimce.2018.12.011" target="_blank">10.1016/j.eimce.2018.12.011</a>.</div>
+            <!-- 双栏模板规范：参考文献正文必须为 Vancouver；不附加 PubMed/Scholar/Crossref 元数据行 -->
+            <!-- 文献编号使用方括号，如 [1] [2] [3]；禁止 [J]、逗号式 Year,Volume:Pages 和正文 DOI: 混排 -->
+            <div>[1] Ferlay J, Shin HR, Bray F, Forman D, Mathers C, Parkin DM. Estimates of worldwide burden of cancer in 2008: GLOBOCAN 2008. Int J Cancer. 2010;127(12):2893-2917.</div>
+            <div>[2] Bhatla N, Singhal S. Primary HPV screening for cervical cancer. Best Pract Res Clin Obstet Gynaecol. 2020;65:98-108.</div>
+            <div>[3] Ortiz-de la Tabla V, Gutierrez F. Cervicitis: etiology, diagnosis and treatment. Enferm Infecc Microbiol Clin (Engl Ed). 2019;37(10):661-667.</div>
         </div>
     </div>
     <div class="page-footer">https://medbam.org<span class="page-num">{{PAGE_NUM}}</span></div>

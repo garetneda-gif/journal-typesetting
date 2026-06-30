@@ -216,7 +216,7 @@ figcaption .fig-label {
 <figure id="fig-1" style="margin:5mm 0; break-inside:avoid; page-break-inside:avoid;">
     <img src="..." alt="Figure 1" style="width:100%; height:auto; display:block;">
     <figcaption style="font-size:8.5pt; margin-top:2mm; text-align:left; line-height:1.3; color:#222;">
-        <span style="font-weight:bold; color:#005a8c;">Figure 1.</span> The flowchart of the study.
+        <span style="font-weight:bold; color:#005a8c;">Figure 1</span> The flowchart of the study.
     </figcaption>
 </figure>
 ```
@@ -256,13 +256,13 @@ figcaption .fig-label {
     <figure id="fig-1" style="flex:1.2; margin:0; display:flex; flex-direction:column;">
         <img src="..." alt="Figure 1" style="width:100%; height:auto; display:block;">
         <figcaption style="font-size:8.5pt; margin-top:2mm; text-align:left; line-height:1.3; color:#222;">
-            <span style="font-weight:bold; color:#005a8c;">Figure 1.</span> Caption text
+            <span style="font-weight:bold; color:#005a8c;">Figure 1</span> Caption text.
         </figcaption>
     </figure>
     <figure id="fig-2" style="flex:0.8; margin:0; display:flex; flex-direction:column;">
         <img src="..." alt="Figure 2" style="width:100%; height:auto; display:block;">
         <figcaption style="font-size:8.5pt; margin-top:2mm; text-align:left; line-height:1.3; color:#222;">
-            <span style="font-weight:bold; color:#005a8c;">Figure 2.</span> Caption text
+            <span style="font-weight:bold; color:#005a8c;">Figure 2</span> Caption text.
         </figcaption>
     </figure>
 </div>
@@ -306,7 +306,7 @@ figcaption .fig-label {
 ```html
 <div style="margin:5mm 0 6mm; break-inside:avoid; page-break-inside:avoid; width:100%;" id="tbl-1">
     <div style="font-size:8.5pt; margin-bottom:2mm; text-align:left; font-weight:normal; color:#222;">
-        <span style="font-weight:bold; color:#005a8c;">Table 1.</span> Patient clinical information statistics.
+        <span style="font-weight:bold; color:#005a8c;">Table 1</span> Patient clinical information statistics.
     </div>
     <table>...</table>
 </div>
@@ -353,8 +353,8 @@ td {
 
 .references div {
     margin-bottom: 2mm;
-    padding-left: 1.5em;
-    text-indent: -1.5em;
+    padding-left: 0;
+    text-indent: 0;
 }
 ```
 
@@ -362,7 +362,7 @@ td {
 
 ```html
 <div style="font-size:8pt; line-height:1.35;">
-    <div style="margin-bottom:2.5mm; padding-left:1.5em; text-indent:-1.5em;">
+    <div style="margin-bottom:2.5mm; padding-left:0; text-indent:0;">
         [1] 文献内容...<br>
         <a href="..." target="_blank" style="color:#005a8c; text-decoration:none;">PubMed</a> |
         <a href="..." target="_blank" style="color:#005a8c; text-decoration:none;">Google Scholar</a> |
@@ -508,7 +508,7 @@ figcaption { font-size: 8.5pt; }
 | 图片容器 | `column-span:all; margin:5mm 0` | `margin:5mm 0` | 双:147-172, 单:251-260 |
 | 并排图片 | `.side-by-side-figures` class（Grid） | inline `display:flex` | 双:261-286, 单:255-263 |
 | 表格 | `border-top:1.5pt solid #000` | 同左 | 双:196-218, 单:267-280 |
-| 参考文献 | `font-size:8pt; padding-left:1.5em` | 同左 | 双:220-230, 单:286-314 |
+| 参考文献 | `font-size:8pt; padding-left:0; text-indent:0` | 同左 | 双:220-230, 单:286-314 |
 
 ---
 
@@ -523,7 +523,7 @@ figcaption { font-size: 8.5pt; }
 
 ### 图片高度限制（防止单张图片占据整页）
 
-**所有图片必须添加高度限制**，确保不会超出页面可用高度的一半：
+**所有图片必须添加高度限制**，确保不会超出页面可用高度；但整版核心大图必须优先保证纸质可读性，不得被 `max-height` 压缩到无法辨认。
 
 #### 双栏版完整CSS
 
@@ -560,13 +560,13 @@ figure img {
     <figure id="fig-1" style="flex:1.2;margin:0;display:flex;flex-direction:column;">
         <img src="..." alt="Figure 1" style="width:100%;height:auto;max-width:100%;max-height:120mm;object-fit:contain;display:block;">
         <figcaption style="font-size:8.5pt;margin-top:2mm;text-align:left;line-height:1.3;color:#222;">
-            <span style="font-weight:bold;color:#005a8c;">Figure 1.</span> Caption text
+            <span style="font-weight:bold;color:#005a8c;">Figure 1</span> Caption text.
         </figcaption>
     </figure>
     <figure id="fig-2" style="flex:0.8;margin:0;display:flex;flex-direction:column;">
         <img src="..." alt="Figure 2" style="width:100%;height:auto;max-width:100%;max-height:120mm;object-fit:contain;display:block;">
         <figcaption style="font-size:8.5pt;margin-top:2mm;text-align:left;line-height:1.3;color:#222;">
-            <span style="font-weight:bold;color:#005a8c;">Figure 2.</span> Caption text
+            <span style="font-weight:bold;color:#005a8c;">Figure 2</span> Caption text.
         </figcaption>
     </figure>
 </div>

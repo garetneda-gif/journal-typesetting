@@ -3,7 +3,7 @@ name: journal-typesetting
 description: |
   将Word学术论文转换为MedBA Medicine期刊HTML格式。支持双栏分页(PDF下载)和单栏连续(在线预览)两种输出。
   自动为参考文献添加验证后的元数据链接(PubMed | Google Scholar | Crossref)。
-  使用场景：当用户提供Word格式的学术论文并要求排版为期刊HTML格式时使用。
+  使用场景：当用户提供生物科学的学术论文及其附件并要求排版为期刊HTML格式时使用。
   触发词：生物期刊排版，生物排版，MedBA排版
 mcp:
   pubmed:
@@ -15,212 +15,209 @@ mcp:
 ---
 # 期刊排版技能 (Journal Typesetting)
 
-## 概述
+## 目的
 
-1. 本技能将 Word 格式的学术论文转换为 MedBA Medicine 期刊规定的 HTML 格式，生成两个版本：
+把 Word 学术论文排成 MedBA Medicine 的两套 HTML：
 
-   1. **双栏分页版** - 供 PDF 下载，A4 分页，双栏布局
-   2. **单栏连续版** - 供在线预览，连续滚动，包含参考文献元数据链接
-2. 期刊默认配置
+1. **双栏分页版**：A4 分页，用于 PDF 下载。
+2. **单栏连续版**：连续滚动，用于在线预览，包含参考文献元数据链接。
 
-   - **期刊名称**: MedBA Medicine
-   - **Logo URL**: https://medbam.org/assets/logo.png
-   - **DOI 前缀**: 10.65079/xxx
-   - **网址**: https://medbam.org
-   - **主题色**: #005a8c
-3. 资源文件
+`SKILL.md` 只做工作流调度。深规则在 `references/`，重复且可验证的检查交给 `scripts/`。
 
-   | 目录        | 文件                            | 说明                                                 |
-   | ----------- | ------------------------------- | ---------------------------------------------------- |
-   | 根目录      | `SKILL.md`                    | 工作流骨架（本文档）                                 |
-   | Assets/     | `template-two-column.html`    | **双栏分页 HTML 模板**（含分页修复）           |
-   |             | `template-single-column.html` | **单栏连续 HTML 模板**（连续滚动）             |
-   | Scripts/    | `verify_links.py`             | 参考文献链接验证工具                                 |
-   |             | `html_generator.py`           | HTML 生成核心模块（内部）                            |
-   |             | `style_validator.py`          | 样式一致性验证器                                     |
-   | References/ | `html-structure.md`           | HTML 结构和 CSS 类说明                               |
-   |             | `reference-links.md`          | 参考文献链接生成指南                                 |
-   |             | `style-mapping.md`            | 样式映射表（元素与CSS对应关系）                      |
-   |             | `pagination-rules.md`         | 分页规则、CP3 强制布局验证（含 Playwright 截图与几何验证） |
-   |             | `typesetting-rules.md`        | 正文排版细节规则（图注、缩进、Back Matter 等）       |
-   |             | `troubleshooting.md`          | 常见问题排查 + 大文件写入规则                        |
-   |             | `dependency-check.md`         | 依赖检查完整流程                                     |
-   |             | `docx-parsing.md`             | Word 文档解析与简短标题确定                          |
-   |             | `image-urls.md`               | 图片 URL 收集流程                                    |
-   |             | `validation-checklist.md`     | 最终验证检查项                                       |
+## 期刊默认配置
 
-> 大文件写入规则（HTML > 30KB 时禁止 write 工具）参见 references/troubleshooting.md § 大文件写入规则
+- **期刊名称**：MedBA Medicine
+- **Logo**：`https://medbam.org/assets/logo.png`
+- **网址**：`https://medbam.org`
+- **主题色**：`#005a8c`
+- **DOI 前缀**：`10.65079`
+- **递增表**：`/Users/jikunren/Documents/期刊排版/.sequence/medba-issue-sequence.json`
+- **文章图床**：`https://medbam.org/assets/{short_title}/Figure%20N.ext`
+- **SFTP 上传**：`editor1@47.239.5.114:22`，配置见 `references/image-urls.md`
 
----
+## 最高优先级不变量
 
-## 工作流程总览
+执行时先满足这些约束，再考虑美观微调：
 
+- 双栏、单栏和 PDF 的正文细节必须同步；修一个版本时同步检查另一个版本。
+- 最终 HTML 禁止引用本地图片、`file://`、`./assets` 或项目相对图片路径。
+- DOI、页码、文章顺序和文件夹名必须由递增表维护，不得凭记忆分配。
+- DOI 必须严格写作 `10.65079/mbamNN`，禁止双斜杠、漏斜杠或大小写不一致。
+- 文件夹名必须是 `{doi_suffix}-{short_title}`；文件名必须是 `two-column-{short_title}.html` 和 `single-column-{short_title}.html`。
+- 可见文件默认只展示双栏 HTML 和单栏 HTML；PDF 只有用户明确要求时才显式展示。
+- `Keywords:` 使用逗号加空格分隔；每个关键词组只大写首个单词首字母，组内普通词小写，专有名词/基因符号/缩写保留规范大小写。
+- 正文、摘要、图注和表注里的 `Figure N` / `Table N` 交叉引用必须加粗。
+- 正文引用 `[n]` 必须与前一个词不可断绑定，不能成为视觉行首。
+- 全文两端对齐，禁用自动断字；不得用拆词、短横线截断、spacer、绝对定位或手工换行解决分页问题。
+- 双栏正文必须 S 型灌版：先填满左栏，再填右栏。
+- CP3、CP4 或最终验证失败时，不得交付。
+
+## 资源索引
+
+| 类型 | 文件 | 用途 |
+|---|---|---|
+| 模板 | `assets/template-two-column.html` | 双栏分页 HTML 模板 |
+| 模板 | `assets/template-single-column.html` | 单栏连续 HTML 模板 |
+| 脚本 | `scripts/sequence_manager.py` | DOI/page/递增表维护 |
+| 脚本 | `scripts/audit_visible_outputs.py` | 可见文件审计 |
+| 脚本 | `scripts/audit_doi_pages.py` | DOI 与页码输出一致性审计 |
+| 脚本 | `scripts/style_validator.py` | 样式一致性验证 |
+| 脚本 | `scripts/validate_two_column_layout.mjs` | 双栏 Playwright 几何验证 |
+| 脚本 | `scripts/verify_links.py` | 参考文献链接验证 |
+| 参考 | `references/dependency-check.md` | 第0步依赖检查 |
+| 参考 | `references/docx-parsing.md` | Word 解析、标题和短标题 |
+| 参考 | `references/image-urls.md` | 图片上传和 URL 验证 |
+| 参考 | `references/sequence-and-output.md` | DOI/page/命名/递增表规则 |
+| 参考 | `references/output-hygiene.md` | 源文件归档和可见文件规则 |
+| 参考 | `references/layout-gates.md` | CP0-CP5、S 型和截图门控 |
+| 参考 | `references/pagination-rules.md` | 双栏分页深规则 |
+| 参考 | `references/typesetting-rules.md` | 正文、关键词、图表、引用细节 |
+| 参考 | `references/style-mapping.md` | CSS 和模板样式映射 |
+| 参考 | `references/reference-links.md` | 参考文献 Vancouver 与链接规则 |
+| 参考 | `references/validation-checklist.md` | 最终交付 checklist |
+| 参考 | `references/troubleshooting.md` | 常见问题与大文件写入规则 |
+
+> HTML 大于 30KB 时，按 `references/troubleshooting.md` 的大文件写入规则处理，避免工具写入截断。
+
+## 必读文件与必跑脚本
+
+| 步骤 | 必读 reference | 必跑或优先脚本 |
+|---|---|---|
+| 第0步 依赖检查 | `dependency-check.md` | 依赖检查命令 |
+| 第1步 解析文档 | `docx-parsing.md`, `sequence-and-output.md` | `sequence_manager.py validate` |
+| 第2步 上传图片 | `image-urls.md` | SFTP + HTTP 验证 |
+| 第3步 双栏 HTML | `pagination-rules.md`, `layout-gates.md`, `typesetting-rules.md`, `style-mapping.md` | `validate_two_column_layout.mjs`, `style_validator.py` |
+| 第4步 单栏 HTML | `typesetting-rules.md`, `style-mapping.md` | `style_validator.py` |
+| 第5步 参考文献 | `reference-links.md` | `verify_links.py` |
+| 第6步 输出治理 | `sequence-and-output.md`, `output-hygiene.md` | `sequence_manager.py`, `audit_visible_outputs.py`, `audit_doi_pages.py` |
+| 第7步 最终验证 | `validation-checklist.md`, `layout-gates.md` | 全部相关审计脚本 |
+
+## 工作流程
+
+```text
+[预检] 明确输入和目标文章 → [0] 依赖检查 → [1] 解析 Word + 短标题 + 序列表 →
+[2] 上传图片 → [3] 生成双栏 HTML → [4] 生成单栏 HTML →
+[5] 规范参考文献并加链接 → [6] 输出治理 → [7] 最终验证
 ```
-[预检] 确认前置条件 → [步骤0] 依赖检查 → [步骤1] 解析文档 → [步骤2] 收集图片URL →
-[步骤3] 生成双栏HTML → [步骤4] 生成单栏HTML → [步骤5] 添加参考文献链接 →
-[步骤6] 输出文件 → [步骤7] 强制验证 ✅
+
+## 第0步：依赖检查
+
+**目标**：确认 docx 解析、MCP、浏览器验证和本地脚本可运行。
+
+- 读取 `references/dependency-check.md`。
+- docx skill 不可用时先停下处理；不要靠猜测解析 Word。
+- PubMed/Crossref MCP 不可用时，按 CP0 询问是否降级到 fallback。
+- Playwright/Chrome 或 Node 运行时不可用时，不得跳过 CP3；先修依赖或明确说明阻塞。
+
+## 第1步：解析 Word 文档并确定短标题
+
+**目标**：得到标题、作者、摘要、正文、图表、参考文献、短标题和序列状态。
+
+- 读取 `references/docx-parsing.md`。
+- 读取 `references/sequence-and-output.md`。
+- 文章主标题转换为 sentence case；专有名词、基因符号和缩写保留规范大小写。
+- 摘要标签标准化为 `Background:` / `Methods:` / `Results:` / `Conclusion:`；`Objective:` 改为 `Background:`。
+- 短标题确认后单独输出一行可复制文本。
+- 开始排版前运行：
+
+```bash
+python3 scripts/sequence_manager.py validate \
+  --sequence "/Users/jikunren/Documents/期刊排版/.sequence/medba-issue-sequence.json" \
+  --root "/Users/jikunren/Documents/期刊排版"
 ```
 
----
+## 第2步：上传图片到图床
 
-## 检查点系统
+**目标**：所有正文 Figure / 图表图片进入 MedBA 图床，HTML 只引用 HTTPS URL。
 
-| 检查点         | 位置    | 验证内容                                          | 失败操作                         |
-| -------------- | ------- | ------------------------------------------------- | -------------------------------- |
-| **CP 0** | 步骤0后 | MCP 可用性                                        | 询问用户：继续 (fallback) 或中止 |
-| **CP 1** | 步骤1后 | 标题、作者、摘要已提取                            | 重新解析或手动输入               |
-| **CP 2** | 步骤2后 | 所有图片 URL 格式正确                             | 重新收集                         |
-| **CP 3** | 步骤3后 | 双栏 HTML 无溢出/留白，且并排图图注底部对齐（必须通过 Playwright 截图与几何验证） | 调整分页重新生成 |
-| **CP 4** | 步骤5后 | 参考文献链接数量符合预期                          | 记录警告但继续                   |
-| **CP 5** | 步骤7   | 通过各项检查                                      | 阻止交付                         |
-
----
-
-## 第0步：依赖检查（MANDATORY - 阻塞性）
-
-> 完整依赖检查流程（docx skill 阻塞性检查、MCP 可用性检查、降级策略）参见 references/dependency-check.md
-
----
-
-## 第1步：解析 Word 文档并确定简短标题
-
-> 完整解析流程（元素识别方法、简短标题规则、用户确认交互）参见 references/docx-parsing.md
-
-- 文章主标题必须转换为 sentence case（仅大写首词和专有名词），详见 references/docx-parsing.md § 1.1.1 和 references/typesetting-rules.md § 文章主标题大小写规则
-- 关键词（`Keywords:`）提取后默认统一规范为小写输出，并使用分号加空格分隔；仅保留专有名词、基因符号或缩写原样确有必要时才例外，并在交付前复核一致性
-- 确认简短标题时，必须把最终标题以单独一行的可复制文本明确展示给用户，便于手动复制到文件夹名、图片路径或其他外部系统
-
----
-
-## 第2步：收集图片 URL
-
-> 完整图片 URL 收集流程（列出图片、URL 配置选项、根据选择收集）参见 references/image-urls.md
-
----
+- 读取 `references/image-urls.md`。
+- 图床目录使用短标题：`/assets/{short_title}/`。
+- 文件名使用 `Figure 1.png`、`Figure 2.jpg` 等规范形式，URL 空格写作 `%20`。
+- 先用 `editor1@47.239.5.114:22` 直连上传，不得把 `medbam.org` 当 SSH 主机。
+- 上传后验证 HTTP 200、权限可读、尺寸或哈希一致。
 
 ## 第3步：生成双栏分页 HTML
 
-参考模板: `assets/template-two-column.html`
+**目标**：生成可导出 PDF 的 A4 双栏 HTML，并通过 CP3。
 
-### 样式一致性规则 (MANDATORY - 最高优先级)
+- 使用 `assets/template-two-column.html`。
+- 读取 `references/pagination-rules.md`、`references/layout-gates.md`、`references/typesetting-rules.md`、`references/style-mapping.md`。
+- CSS 和 class 以模板为准；不要随机美化或重写模板。
+- 正文表格使用三线表；图注和表注完整可见。
+- 每次修改分页、图表、表格、页脚、段落缩进或参考文献分页后，都重跑：
 
-**核心原则：100%复制模板样式，杜绝随机性**
+```bash
+node scripts/validate_two_column_layout.mjs /path/to/two-column.html --out /path/to/.screenshot
+python3 scripts/style_validator.py /path/to/two-column.html --type two-column
+```
 
-- ❌ 禁止推测或生成 CSS / 禁止美化样式 / 禁止修改模板
-- ⚠️ 正文行距统一为 1.4，行距取值范围 1.0–1.9，严禁 ≥2.0
-- ✅ 完全复制 `<style>` 标签（模板第7-280行）
-- ✅ 严格使用模板 class / 保留所有 inline style
-
-> 完整样式规则和 CSS 变量清单参见 references/style-mapping.md
-
-### 分页规则
-
-> 分页核心原则、人机协同流程、失败根因分析、内容分析、分割策略、验证检查点参见 references/pagination-rules.md
-
-- 双栏 HTML 生成后，**必须**先执行 Playwright 截图验证与几何测量；若发现底部未对齐、页面溢出或非最后页留白超阈值，必须修复后重跑，未通过 CP3 不得继续后续步骤
-
-### 步骤3.1-3.3：分页规划与页面创建
-
-- **步骤3.1**：内容分析和分页规划 → references/pagination-rules.md § 内容分析和分页规划
-- **步骤3.2**：手动创建每个页面（禁止追加模式，一次性生成完整 HTML）→ references/pagination-rules.md § 手动创建每个页面
-- **步骤3.3**：内容分割策略（每页约600-800词纯文字或300-400词含图表）→ references/pagination-rules.md § 内容分割策略
-
-### 步骤3.4：正文排版细节规则（MANDATORY）
-
-> 所有排版细节规则（图注句点、图注对齐、URL 处理、引号标点、封面间距、段落缩进、Back Matter、左栏对齐、MathJax 公式、参考文献缩进、表格跨栏/续表、蛇形布局）参见 references/typesetting-rules.md
-
-- 首页摘要区 `Keywords:` 后的关键词列表统一使用“分号分隔 + 默认小写”的展示规则，避免同一篇文章中出现大小写和分隔符混排
-
-> HTML 结构和 CSS 类说明参见 references/html-structure.md
-
-### 输出文件
-
-`two-column-{short-title}.html`
-
----
+- CP3 失败时回到分页修复，不得继续。
 
 ## 第4步：生成单栏连续 HTML
 
-参考模板: `assets/template-single-column.html`
+**目标**：生成在线预览用单栏连续 HTML，并与双栏终稿同步。
 
-### 样式一致性规则 (MANDATORY)
+- 使用 `assets/template-single-column.html`。
+- 读取 `references/typesetting-rules.md` 和 `references/style-mapping.md`。
+- 单栏禁止分页符、`page-break` 或分页 CSS。
+- 摘要、关键词、正文引用、Table/Figure 加粗、p 值斜体、表格三线表、Back Matter 标点都以双栏终稿为准同步。
+- 单栏 References 保持连续版元数据链接结构，不按双栏分页版拆栏。
 
-**与第3步相同，必须100%复制模板样式**
+## 第5步：参考文献规范化与链接
 
-- ✅ 完全复制 `<style>` 标签（模板第7-124行）
-- ✅ 使用模板 inline style
-- ✅ 图片并排布局使用模板第251-260行的 CSS
+**目标**：统一 Vancouver 风格，并为单栏连续版添加元数据链接。
 
-> 样式规则参见 references/style-mapping.md
+- 读取 `references/reference-links.md`。
+- 不臆造 DOI/PMID；低置信匹配跳过并记录。
+- 参考文献正文统一为 Vancouver 风格；作者超过 3 位时列前 3 位后加 `et al.`。
+- 双栏和单栏的参考文献正文必须一致；单栏只额外添加 PubMed / Google Scholar / Crossref 链接。
+- CP4 至少确认 Google Scholar 链接数量等于参考文献总数，并记录 PubMed/Crossref 实际数量。
 
-### 特点
+## 第6步：输出文件与目录治理
 
-- 单栏布局，**连续滚动，绝对不分页**
-- 支持 `single-page-pdf` 类用于长页 PDF 生成
-- **禁止任何分页符、page-break 或分页 CSS**
+**目标**：只保留规范命名的可见成品，源文件和中间产物全部归档。
 
-### 输出文件
+- 读取 `references/sequence-and-output.md` 和 `references/output-hygiene.md`。
+- 若用户要求 PDF，PDF 命名为 `two-column-{short_title}.pdf`；否则不生成或不显式展示。
+- 输出后运行：
 
-`single-column-{short-title}.html`
-
----
-
-## 第5步：添加参考文献链接（双栏+单栏均执行）
-
-### 验证模式选择
-
-| 模式      | DOI 提取 | PubMed  | Crossref     | Google Scholar | 耗时    | MCP 调用 |
-| --------- | -------- | ------- | ------------ | -------------- | ------- | -------- |
-| 快速      | 本地     | ❌      | ❌           | 总是           | <10秒   | 0次      |
-| 标准      | 本地     | ❌      | 无 DOI 时    | 总是           | 30-60秒 | ~15次    |
-| 完整      | 本地     | 全部    | 无 DOI 时    | 总是           | 2-5分钟 | ~40次    |
-
-### 执行策略（严格遵守优先级）
-
-```
-优先级1: DOI提取（本地，0 MCP调用）→ 优先级2: PubMed查询 → 优先级3: Crossref查询（仅无DOI时）→ 优先级4: Google Scholar（总是生成）
+```bash
+python3 scripts/audit_visible_outputs.py "/Users/jikunren/Documents/期刊排版" --allow-pdf
+python3 scripts/audit_doi_pages.py \
+  --sequence "/Users/jikunren/Documents/期刊排版/.sequence/medba-issue-sequence.json" \
+  --root "/Users/jikunren/Documents/期刊排版" \
+  --check-pdf
 ```
 
-- ❌ 禁止臆造 DOI/PMID
-- ❌ 低置信度匹配（<80%）必须跳过
-- ⚠️ PubMed MCP 连续 2 次超时（>10s）→ 自动切换标准模式
+- 如果没有 PDF 交付，去掉 `--allow-pdf` 和 `--check-pdf`。
 
-> 完整实现逻辑（DOI提取正则、PubMed策略、Crossref查询、Scholar链接生成、verify_links.py用法）参见 references/reference-links.md
+## 第7步：最终验证
 
-### CP 4 检查点
+**目标**：用 checklist 和脚本确认可交付。
 
-- [ ] Google Scholar 链接 = 参考文献总数
-- [ ] PubMed 链接 >= 0（记录实际数量）
-- [ ] Crossref 链接 >= DOI 提取数量
-- [ ] 已尝试验证所有文献（有记录）
+- 读取 `references/validation-checklist.md`。
+- 必须验证：
+  - 双栏和单栏文件存在且命名规范。
+  - DOI/page 与递增表一致。
+  - 可见文件审计通过。
+  - 双栏 CP3 几何验证通过。
+  - 样式验证通过。
+  - 单栏/双栏文本细节同步。
+  - 图片全为 MedBA HTTPS 图床 URL。
+  - 参考文献编号连续且链接记录完整。
+- 最终报告写明：输出文件、页数、DOI、参考文献链接统计、运行过的验证命令和任何 warning。
 
----
+## 常用审计命令
 
-## 第6步：输出最终文件
+```bash
+python3 scripts/sequence_manager.py validate \
+  --sequence "/Users/jikunren/Documents/期刊排版/.sequence/medba-issue-sequence.json" \
+  --root "/Users/jikunren/Documents/期刊排版"
 
-### 输出目录
+python3 scripts/audit_visible_outputs.py "/Users/jikunren/Documents/期刊排版" --allow-pdf
 
-`/Users/jikunren/Documents/期刊排版/{简短标题}/`
-
-### 输出结构
-
+python3 scripts/audit_doi_pages.py \
+  --sequence "/Users/jikunren/Documents/期刊排版/.sequence/medba-issue-sequence.json" \
+  --root "/Users/jikunren/Documents/期刊排版" \
+  --check-pdf
 ```
-/Users/jikunren/Documents/期刊排版/Ferroptosis-Cervical-Cancer/
-├── screenshot/
-│   ├── two-column-page-01.png
-│   ├── two-column-page-03-issue-before.png
-│   ├── two-column-page-03-issue-after.png
-│   └── single-column-preview.png
-├── two-column-Ferroptosis-Cervical-Cancer.html
-└── single-column-Ferroptosis-Cervical-Cancer.html
-```
-
----
-
-## 第7步：最终验证（BLOCKING - 门控机制）
-
-> 完整验证流程（源文件比对验证、比对输出格式、其他检查项）参见 references/validation-checklist.md
-
-- 强制复核文章主标题：双栏版与单栏版一致，采用 sentence case（仅首词和专有名词大写）
-- 强制复核 `Keywords:` 行：双栏版与单栏版的关键词内容一致，使用分号分隔，普通词默认小写，语义性缩写按需保留原样
-- 强制附带 Playwright 验证结果：至少包含存放于输出目录 `screenshot/` 下的逐页截图、溢出/留白几何报告，以及并排图片图注底部对齐测量结果

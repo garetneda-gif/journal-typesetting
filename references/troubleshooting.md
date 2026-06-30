@@ -112,10 +112,10 @@ pandoc your-document.docx -o test.md
 **解决方案**：
 ```bash
 # 1. 手动验证URL可访问性
-curl -I "https://medbam.org/assets/Figure 1.png"
+curl -I -L "https://medbam.org/assets/{简短标题}/Figure%201.png"
 
-# 2. 如果URL中有空格，浏览器会自动处理为%20
-# 直接使用 "Figure 1.png" 即可，无需手动编码
+# 2. HTML中空格必须写作%20
+# 正确：/Figure%201.png；禁止散放到/assets/根目录
 
 # 3. 检查服务器CORS设置
 ```
@@ -127,7 +127,8 @@ curl -I "https://medbam.org/assets/Figure 1.png"
 
 **解决方案**：
 - 确保使用绝对URL（以`https://`开头）
-- 不要使用相对路径如`./images/figure1.png`
+- 不要使用相对路径如`./images/figure1.png` 或 `assets/Figure 1.png`
+- 确认文章图片位于 `https://medbam.org/assets/{简短标题}/Figure%20N.ext`
 
 ---
 
@@ -173,19 +174,22 @@ mkdir -p ~/Documents/期刊排版/Test-Article/
 ### 5. 参考文献问题
 
 #### 问题：参考文献格式无法识别
-**现象**：DOI提取失败，无法生成链接
+**现象**：DOI 提取失败、PubMed/Crossref 低置信匹配，或原稿参考文献存在 `[J]`、APA、逗号式卷页、`DOI:` 大小写混排等残留
 
-**支持的格式**：
+**目标格式**：
 ```
-✅ [1] Author. Title[J]. Journal, 2020,10(1):1-10. DOI:10.xxxx/xxxx
-✅ [2] Author. Title. Journal. 2020;10(1):1-10. https://doi.org/10.xxxx/xxxx
-❌ [3] Author (2020). Title. Journal 10(1), 1-10.
+✅ [1] Author A, Author B, Author C. Article title. J Abbrev. 2020;10(1):1-10.
+✅ [2] Author D, Author E. Electronic article title. BMJ. 2015;350:h2372.
+❌ [3] Author. Title[J]. Journal, 2020,10(1):1-10. DOI:10.xxxx/xxxx
+❌ [4] Author (2020). Title. Journal 10(1), 1-10.
 ```
 
 **解决方案**：
-- 使用编号格式 [1], [2], [3]...
-- DOI应在文献末尾
-- 如果格式不规范，只会生成Google Scholar链接
+- 保留编号顺序，先抽取标题、首作者、年份、期刊、卷期页、DOI。
+- 用 DOI、PubMed、Crossref 或出版社页面补齐可核验的卷、期、页码或文章号。
+- 将正文统一改写为 Vancouver：`[n] Authors. Title. Journal. Year;Volume(Issue):Pages/article-number.`
+- 双栏和单栏必须使用同一套参考文献正文；单栏只在正文后追加 PubMed / Google Scholar / Crossref 元数据链接。
+- 低置信匹配时不得臆造 DOI/PMID/页码；必须在最终报告列出无法补齐的条目和原因。
 
 ---
 

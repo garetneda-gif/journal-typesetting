@@ -59,6 +59,7 @@ class StyleValidator:
         self._validate_font_family(generated_html)
         self._validate_css_variables(generated_html, template_html)
         self._validate_critical_styles(generated_html)
+        self._validate_image_sources(generated_html)
         self._validate_figure_styles(generated_html)
         self._validate_table_styles(generated_html)
         self._validate_reference_styles(generated_html)
@@ -278,6 +279,54 @@ class StyleValidator:
                 warning_msg="并排图片应使用 gap: 5mm (单栏) 或 gap: 4mm (双栏)"
             )
 
+    def _validate_image_sources(self, html):
+        """验证图片必须使用图床 URL，禁止本地图片引用"""
+        print("\n## 图片图床引用检查")
+
+        img_srcs = re.findall(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\']', html, re.IGNORECASE)
+        if not img_srcs:
+            print("  ℹ️  未检测到图片，跳过图片图床引用检查")
+            return
+
+        local_srcs = [
+            src for src in img_srcs
+            if src.startswith(("assets/", "./", "../", "file://", "/Users/", "/var/", "images/"))
+        ]
+        self._check(
+            "禁止本地图片引用",
+            not local_srcs,
+            error_msg=f"检测到本地图片引用: {', '.join(local_srcs[:3])}"
+        )
+
+        root_figure_srcs = [
+            src for src in img_srcs
+            if re.search(r'https://medbam\.org/assets/Figure(?:%20|\s)\d+\.(?:png|jpe?g|webp|gif)$', src, re.IGNORECASE)
+        ]
+        self._check(
+            "禁止正文 Figure 散放图床根目录",
+            not root_figure_srcs,
+            error_msg=f"正文图片必须放在 /assets/{{简短标题}}/ 下: {', '.join(root_figure_srcs[:3])}"
+        )
+
+        bad_medbam_srcs = [
+            src for src in img_srcs
+            if src.startswith("https://medbam.org/assets/")
+            and src != "https://medbam.org/assets/logo.png"
+            and not re.search(r'https://medbam\.org/assets/[^/]+/Figure%20\d+\.(?:png|jpe?g|webp|gif)$', src, re.IGNORECASE)
+        ]
+        self._check(
+            "正文图片使用文章短文件夹图床 URL",
+            not bad_medbam_srcs,
+            error_msg=f"图片URL不符合 /assets/{{简短标题}}/Figure%20N.ext: {', '.join(bad_medbam_srcs[:3])}"
+        )
+
+        unencoded_space_srcs = [src for src in img_srcs if " " in src]
+        self._check(
+            "图片 URL 空格使用 %20 编码",
+            not unencoded_space_srcs,
+            error_msg=f"图片URL含未编码空格: {', '.join(unencoded_space_srcs[:3])}"
+        )
+
     def _validate_table_styles(self, html):
         """验证表格样式"""
         print("\n## 表格样式检查")
@@ -319,13 +368,13 @@ class StyleValidator:
             error_msg="参考文献应使用 font-size: 8pt"
         )
 
-        # 检查悬挂缩进
+        # 检查参考文献不使用悬挂缩进
         has_hanging_indent = ("padding-left:1.5em" in html or "padding-left: 1.5em" in html) and \
                             ("text-indent:-1.5em" in html or "text-indent: -1.5em" in html)
         self._check(
-            "参考文献悬挂缩进",
-            has_hanging_indent,
-            warning_msg="参考文献应使用悬挂缩进 (padding-left: 1.5em; text-indent: -1.5em)"
+            "参考文献不使用悬挂缩进",
+            not has_hanging_indent,
+            warning_msg="参考文献不应使用悬挂缩进；保持 padding-left:0; text-indent:0"
         )
 
         # 检查链接颜色

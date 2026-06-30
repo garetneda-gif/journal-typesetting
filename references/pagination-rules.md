@@ -1,19 +1,28 @@
 # 分页规则参考文档
 
+> 结构说明：本文件保留深分页算法、Playwright 示例和失败处理细节；CP0-CP5 摘要、S 型门控和截图/rect 检查入口见 `layout-gates.md`。
+
+
 > 从 SKILL.md 提取的分页核心内容（核心原则、人机协同流程、失败根因分析、内容分析、HTML模板、分割策略、大图处理、验证检查点）
 
 ---
 
 ## 分页核心原则 (CRITICAL - 必须严格执行)
 
-> **分页时绝对不能溢出，也绝对不能留白！**
+> **分页时绝对不能溢出；非最后页不得出现超阈值留白，且不得为消除留白破坏期刊视觉比例。**
 
 **分页规则:**
 
 - 封面页：不必独立成页——若封面/摘要区域底部有剩余空间，**必须**将 Introduction 等正文内容接续填入，直至页面填满，**摘要页底部绝对不允许留白**。例外：若摘要本身内容过长已占满整个摘要页，则允许 Introduction 另起新页。
-- 正文页：每页约800-1000字；允许孤行（orphan）和寡行（widow），但**绝不允许留白**
+- 正文页：每页约800-1000字；允许孤行（orphan）和寡行（widow），非最后页必须尽量贴近页脚安全线，不能出现可见大空白
 - **禁止溢出**：内容绝不能超出页面边界
-- **零留白容忍**：页底不得有可见空白；若当前段落无法填满，必须继续拉入下一段或下一节内容
+- **页底留白阈值**：非最后页 `whitespace_px < 30px` 为 PASS，`30px <= whitespace_px < 57px` 为 WARNING，`whitespace_px >= 57px` 为 FAILURE；最后一页参考文献数量不可控，可放宽
+- **页脚页码规则**：页脚 URL 必须保持居中，页码必须使用 `.page-footer .page-num` 独立右对齐；不得写成 `.page-footer.page-num`，不得让可见文本拼接为 `https://medbam.org3`。
+- **最后一页规则**：最后一页不要求贴底或左右栏底部对齐，但 References 必须保持正常字号、行距和段距；禁止为了贴底拉大 References 行距、段距、字距或插入空白块。
+- **可见内容规则**：验证不能只检查 DOM。所有 Figure/Table 图注和 References 条目必须真实出现在页面可视区内；若元素存在于 DOM 但被 `overflow:hidden`、固定高度容器、跨栏图或页脚裁切隐藏，视为 CP3 FAILURE。
+- **跨栏块规则**：含跨栏图、宽表或结构化块的页面即使自动 `s_flow` 检测被 SKIPPED，也必须人工查看逐页截图，确认图注完整、页底空白正常、后续正文衔接自然。
+- **S 型优先规则**：左右栏对齐不得以牺牲 S 型阅读顺序为代价。标题、小节或 Back Matter 的左右同高要求不能覆盖“先填满左栏，再填右栏”的正文灌版规则。
+- **禁止 spacer 规则**：不得在多栏正文流内插入空白块、透明块、spacer 或绝对定位块来下压某一栏；这类修法即使肉眼暂时对齐，也容易产生横向溢出、第三列或隐藏裁切，CP3 视为失败。
 - **表格溢出处理**：先压缩间距（参见步骤3.4 Phase 1），压缩不够再跨页分割（参见步骤3.4 Phase 2）
 
 **留白修复方法（首选内容重排；内容总量不足时才允许按页调整行距）：**
@@ -22,8 +31,15 @@
 | ------------------------------ | ------------------------------- | ---------------------------------------------------------------------- | -------------------------------------- |
 | 页面留白过多（内容太少）       | 将下一页的段落/节标题移入当前页 | 全文内容总量不足时，按 § 8 的公式迭代调整行距 | 猜测行距值（未经 Playwright 实测）     |
 | 页面溢出（内容太多）           | 将末尾段落移至下一页开头        | —                                                                     | 加超大 `line-height` 凑满            |
-| 纯表格页留白（P5/P6 类）       | 将后续文字段落移至表格后填充    | —                                                                     | 调整表格页行距（table 行高固定，无效） |
+| 纯表格页留白（P5/P6 类）       | 将后续文字段落移至表格后填充    | 小幅调节块间距或正文段间距，并实测 | 用夸张 `td/th` padding、行高或空白块拉高表格 |
 | 多页同时留白（数学上总量不足） | —                              | 逐页迭代行距调整（Playwright 实测 + 8.3 公式）                         | 不运行 Playwright 直接猜值             |
+
+**禁止“硬填空”规则：**
+
+- 不得为了让页面贴底，把三线表行高、`td/th` padding、图像高度、图注行距或段落 `line-height` 拉到肉眼明显异常。
+- 表格视觉必须保留期刊三线表比例；若表格行数少，允许页面底部存在 `<30px` 安全余量，不得用单个表格承担全部填空。
+- 若需要微调，优先顺序为：内容分页 → S 型连续灌版 → 段间距/块间距小幅调整 → 字号/栏宽小幅调整；表格 padding 只能做小幅视觉可接受调整。
+- 小表格可由并排栏内表改为跨栏横向表来改善拥挤和底部对齐，但必须保持 Table 编号视觉顺序递增，并验证表题、表体和底线不被页脚裁切。
 
 ---
 
@@ -44,8 +60,9 @@
    - 检查页数是否达到预期最小值（§CP3.0 有完整代码）
    - ⚠️ 任何一项失败 → **停止验证，重新生成 HTML**
 4. **【验证】布局检查（CP3）**
-   - **自动验证（强制）**：AI 必须使用 Playwright MCP 按本文档 § Playwright 自动布局验证 工作流逐页截图，并测量溢出/留白/图注底部对齐几何数据，输出报告后自行修复
-   - **人工验证（仅补充）**：用户在浏览器中逐页复核截图结果，但不能替代自动验证
+   - **自动验证（强制）**：AI 必须优先运行 `scripts/validate_two_column_layout.mjs` 或等效 Playwright MCP 工作流逐页截图，并测量溢出/留白/图注底部对齐、页脚页码、首页 Introduction 视觉安全距离、S 型灌版和最后页 References 行距，输出报告后自行修复
+   - **修改后重验（强制）**：任何影响分页、首页位置、栏宽、行距、段间距、表格、图片、图注、参考文献分布的修改，都必须回到 Playwright 截图 + 几何测量；不得只做局部肉眼确认。
+   - **人工视觉复核（强制补充）**：AI 必须实际打开或查看逐页截图，重点复核每页页脚上方 30mm、左右栏底部、首页 Introduction、跨栏 Figure/Table 页、Back Matter/References 起始页、最后页 References 行距和页码位置；自动 metrics 不能替代视觉复核。
    检查点：详见下方风险标注规则。
 
 **Phase 3: 通过playwright-mcp截图每页并修正问题页面**
@@ -78,15 +95,38 @@
 
 - 自动验证阈值（Playwright 报告）：
   - 溢出任意值 → FAILURE（必须修复，所有页适用）
-  - 留白 ≥30mm (113px) → FAILURE（必须压缩，**最后一页除外**）
-  - 留白 15-30mm (57-113px) → WARNING（建议压缩，**最后一页除外**）
+  - 留白 ≥57px → FAILURE（必须压缩，**最后一页除外**）
+  - 留白 30-57px → WARNING（建议压缩，**最后一页除外**）
+  - 留白 <30px → PASS（保留页脚安全距离，不再用异常表格/行距强行填满）
   - 并排图片图注底部对齐差值 > 2px → FAILURE（必须修复）
   - 并排图片图注底部对齐差值 1-2px → WARNING（建议修正后再截图）
-  - **最后一页**：留白不限，参考文献数量不可控，任意留白均为 PASS
+  - 左右栏顶部差值 > 4px → FAILURE；首页 Introduction 顶部差值 > 2px → FAILURE
+  - 左右栏底部差值 > 13px → FAILURE；首页 Introduction 底部差值 > 2px → FAILURE
+  - 首页 Introduction 底部到页脚线视觉安全距离 < 24px → FAILURE，即使 `overflow_px = 0` 也必须修复
+  - 左右栏宽度差值 > 1px → FAILURE
+  - 页脚页码未贴右边界或拼到 URL 后 → FAILURE
+  - S 型灌版顺序检测失败 → FAILURE
+  - Figure/Table 图注被图片、页面底部或页脚裁切，或句末标点不可见 → FAILURE
+  - Figure 作为正文关键图时被 `max-height` 压缩到难以纸质阅读 → FAILURE；应优先调整分页或独立图页，而不是继续压缩图片
+  - References 编号不连续、不递增、重复、缺号，或任何条目在 DOM 中存在但不在页面可视区内 → FAILURE
+  - **最后一页**：留白不限，参考文献数量不可控，任意留白均为 PASS；但 References 行距/段距异常拉伸 → FAILURE
 - 人工验证经验值：
   - 溢出 >10mm：标注必须修复
   - 溢出 5-10mm：标注建议修复
-  - 留白 >30mm（非最后页）：标注建议压缩
+  - 非最后页肉眼可见的大块空白：即使几何未达 FAILURE，也应优先检查是否可以自然拉入后续内容
+
+**固定验证产物（CP3 交付前必须存在）：**
+
+- `screenshot/two-column-strict-page-01.png` 至最后一页逐页截图。
+- `screenshot/two-column-strict-metrics.json`，至少包含：
+  - 顶层：`page_count`、`strict_column_result`、`failures`、`format_issues`
+  - 每页：`overflow_px`、`overflow_x_px`、`whitespace_px`、`left_bottom_gap_px`、`right_bottom_gap_px`、`bottom_delta_px`、`top_delta_px`、`footer_page_number_right_aligned`、`footer_page_number_appended_to_url`、`s_flow`
+  - 图表：每个 Figure/Table caption 的可见状态、底部坐标和是否被页脚/容器裁切；大图的实际渲染宽度与内容宽度比例
+  - References：每条参考文献编号、所在页、可见状态、是否按编号递增连续
+  - 首页：`first_page_intro_flow.footer_safety_px`、`first_page_intro_flow.bottom_delta_px`、`first_page_intro_flow.visual_safe`
+  - 最后一页：`final_reference_inline_stretch`
+
+若没有固定 JSON，或 JSON 中任一 BLOCK 指标失败，CP3 视为未完成。
 
 ---
 
@@ -508,11 +548,51 @@ figure, .side-by-side-figures, .table-wrapper {
 
 ## Playwright 自动布局验证（MANDATORY）
 
+### Playwright 运行时选择（MANDATORY）
+
+本技能做 CP3 视觉/几何验证时，必须优先使用用户已安装的 Playwright 能力，而不是默认绕到 Codex bundled runtime。
+
+**优先级：**
+
+1. **优先使用 `$playwright` skill 的 CLI wrapper**：先检查 `command -v npx`，再使用用户 skill 中的 `scripts/playwright_cli.sh` 或系统 `playwright` 命令。
+2. **需要持续调试时使用 `$playwright-interactive`**：适用于同一 HTML 反复改版、刷新、截图、测量，不要每次重启浏览器。
+3. **可用时使用 in-app browser plugin**：适合检查当前浏览器可见页面；若插件拒绝 `file://`，不得判定为“无浏览器”。
+4. **只有以上路径不可用时，才考虑 Codex bundled Node/Playwright runtime**；不要优先使用它，因为它可能没有 `npx`，且 Playwright 浏览器缓存可能缺失。
+
+**环境检查顺序：**
+
+```bash
+command -v npx
+command -v playwright
+test -x "$HOME/.codex/skills/playwright/scripts/playwright_cli.sh" || \
+test -x "/Users/jikunren/Library/Mobile Documents/com~apple~CloudDocs/SyncConfig/claude/folder_data/skills/playwright/scripts/playwright_cli.sh"
+```
+
+**`file://` 处理：**
+
+- 若 Playwright CLI 能直接打开 `file://`，可直接验证本地 HTML。
+- 若 in-app browser plugin 因 URL policy 拒绝 `file://`，必须启动只读本地 HTTP 预览服务再验证，例如：
+
+```bash
+python3 -m http.server 9876 --bind 127.0.0.1
+```
+
+然后用 `http://127.0.0.1:9876/{输出目录}/two-column-{short-title}.html` 打开同一文件。
+
+**禁止重复犯的错误：**
+
+- 不得因为 Codex bundled runtime 缺浏览器缓存，就说“Playwright 不可用”。
+- 不得优先尝试安装 bundled Playwright Chromium，除非 `$playwright` / `$playwright-interactive` / in-app browser 都不可用。
+- 不得把系统 Chrome pipe 连接超时误判为 Playwright 整体不可用；应切换到 `$playwright` wrapper 或 `127.0.0.1` 本地预览路径。
+- 临时 HTTP 服务验证完成后必须关闭，避免残留后台进程。
+
 ### 验证目标
 
 - 逐页截图，确认页面级布局与肉眼结果一致
 - 几何测量每页内容区域，检测溢出与留白
 - 几何测量每个 `.side-by-side-figures` 内的 `figcaption` 底边，检测是否底部对齐
+- 用 Playwright/DOM Range 检查正文、摘要、图注、表注中的 `.nowrap-cite` 或方括号内文引用，确认 `[n]` / `[n,m]` 没有成为视觉行首；References 列表编号排除在外
+- 逐页视觉复核不可断引用后的词距：不得出现因 `word [n]` 绑定、统计短语不可断或两端对齐导致的夸张词间距、局部大空洞或统计短语孤立行首
 
 ### 必跑顺序
 
@@ -521,7 +601,7 @@ figure, .side-by-side-figures, .table-wrapper {
 3. 用 Playwright 打开本地 HTML
 4. 等待字体与布局稳定
 5. 截取每一页截图
-6. 运行几何测量脚本并输出结构化报告
+6. 运行几何测量脚本并输出结构化报告，报告必须包含正文引用行首检查结果和正文词距美观检查结果
 7. 若任一页失败，修复 HTML 后回到第 3 步重跑
 8. 只有全部通过后，才允许继续步骤4/5/6/7
 
@@ -531,9 +611,13 @@ figure, .side-by-side-figures, .table-wrapper {
 
 - `page_index`
 - `overflow_px`
+- `overflow_x_px`
 - `whitespace_px`
 - `is_last_page`
 - `side_by_side_groups`
+- `column_alignment`（显式左右栏容器必须测量）
+- `first_page_intro_flow`（首页 Introduction 使用连续 column flow 时必须测量）
+- `s_flow`
 - `status`
 
 **每个并排图片组必须输出以下字段：**
@@ -543,6 +627,36 @@ figure, .side-by-side-figures, .table-wrapper {
 - `caption_bottom_delta_px`
 - `image_bottoms_px`
 - `image_bottom_delta_px`
+- `status`
+
+**每个显式左右栏容器必须输出以下字段：**
+
+- `left_width_px` / `right_width_px` / `width_delta_px`
+- `left_top_px` / `right_top_px` / `top_delta_px`
+- `left_bottom_px` / `right_bottom_px` / `bottom_delta_px`
+- `status`
+
+**每个 CSS 多栏连续流区域（如正文 flow、discussion-flow、method-results-flow）必须输出以下字段：**
+
+- `flow_selector`
+- `rect_count`
+- `left_rect_count` / `right_rect_count` / `outside_rect_count`
+- `left_top_px` / `right_top_px` / `top_delta_px`
+- `left_bottom_px` / `right_bottom_px` / `bottom_delta_px`
+- `left_bottom_gap_px` / `right_bottom_gap_px`
+- `s_flow_status`
+- `status`
+
+说明：不能只测 `.manual-s-grid` 或显式左右栏。含 Figure + Discussion + Back Matter 的混合页也必须测 CSS 多栏实际 rect，否则会漏掉“右栏下移/左栏悬空/底部不齐”的问题。
+
+**首页 Introduction 连续流必须输出以下字段：**
+
+- `column_count`
+- `left_rect_count` / `right_rect_count`
+- `outside_rect_count`
+- `left_bottom_gap_px` / `right_bottom_gap_px`
+- `bottom_delta_px`
+- `right_top_gap_px`
 - `status`
 
 ### Playwright `evaluate()` 示例
@@ -588,9 +702,9 @@ figure, .side-by-side-figures, .table-wrapper {
     const pageStatus =
       overflowPx > 0
         ? 'FAILURE'
-        : !isLastPage && whitespacePx >= 113
+        : !isLastPage && whitespacePx >= 57
           ? 'FAILURE'
-          : !isLastPage && whitespacePx >= 57
+          : !isLastPage && whitespacePx >= 30
             ? 'WARNING'
             : sideBySideGroups.some((group) => group.status === 'FAILURE')
               ? 'FAILURE'
@@ -643,14 +757,33 @@ figure, .side-by-side-figures, .table-wrapper {
 **3. 非最后页留白过多**
 
 - 优先从下一页拉入一个完整段落、一个小节标题加首段，或一个图片组
-- 若属于表格页留白，优先拉入后续文字，不要盲调表格行高
+- 若属于表格页留白，优先拉入后续文字，不要盲调表格行高；小表格允许保留 `<30px` 页脚安全距离，不得把 `td/th` padding 拉到肉眼夸张
 - 多页同时留白时，才允许依据实测几何结果迭代微调行距
+
+**4. 用户指出“太高/太低/整体下移/整体上移”**
+
+- 只调整对应页面或块的纵向位置，不改正文断点、栏宽或字距，除非实测显示会溢出。
+- 必须用毫米级或 0.5mm 级扫描至少 2-3 个候选值，记录 `overflow_px`、`whitespace_px`、左右栏 `bottom_delta_px` 后选择最大安全值。
+- 调整后必须重新截图该页并重跑全页几何验证，避免修首页破坏后页。
+
+**5. 左右栏不齐**
+
+- 先确认阅读顺序是否为 S 型；不能用手工断行或空白块把顶部/底部“摆齐”。
+- 对显式左右栏容器，必须同时满足宽度差 <= 1px、顶部差 <= 4px、底部差 <= 13px；首页 Introduction 更严格，顶部差 <= 2px、底部差 <= 2px。
+- 若正文文字可使用连续流，优先改为固定高度 `column-count:2; column-fill:auto`，让浏览器按 DOM 顺序先左后右；只有图表、Back Matter、参考文献等结构化块才允许显式左右栏。
+- 若只需下移右栏内某个 Back Matter 标题，使用目标标题 class 的局部 `margin-top`；不得在左栏末尾或右栏开头插入空块。修改后必须检查 computed style，确认没有被 `.section-title:not(:first-child)` 等更高优先级规则覆盖。
+
+**6. 图像尺寸用于消除留白**
+
+- 只能通过小步扫描或二分搜索找到最大安全图像尺寸；每个候选值都必须记录 `overflow_px`、`overflow_x_px`、`whitespace_px`、图注可见性和左右栏 `bottom_delta_px`。
+- 一旦候选尺寸造成溢出、图注裁切或页脚遮挡，必须回退到上一个安全值；不得因为“底部无留白”继续使用溢出值。
+- 如果最大安全图像尺寸仍留白，改用内容分页、跨栏表格或块间距微调；不得把图片拉到不可读或越界。
 
 ---
 
 ## 验证检查点
 
-### ✅ CP 3检查点：验证无溢出/留白且图注底部对齐
+### ✅ CP 3检查点：验证无溢出/留白、S 型灌版、段落缩进、摘要对齐、Introduction 等行且图注底部对齐
 
 **关键验证项（必须全部通过，且必须基于 Playwright 截图与几何报告）：**
 
@@ -691,7 +824,41 @@ def validate_pagination(html_file):
 
         print(f"✅ 第{i}页: {word_count}词, 图表={has_figures or has_tables}")
 
-    # 4. 检查最后一页是否留白过多
+    # 4. 检查摘要区右侧对齐
+    abstract_nodes = query_all('.abstract-box, .abstract-box p')
+    for node in abstract_nodes:
+        style = get_computed_style(node)
+        if style.get('text-align') != 'justify':
+            raise ValidationError('摘要区必须 text-align: justify，右侧不得参差')
+
+    # 5. 检查首页 Introduction 左右栏视觉行数
+    intro = query_one('.first-page-introduction, .cover-introduction')
+    if intro:
+        left_lines, right_lines = count_rendered_lines_by_column(intro)
+        if (left_lines + right_lines) % 2 != 0 or left_lines != right_lines:
+            raise ValidationError(
+                f'首页 Introduction 左右栏行数不齐: left={left_lines}, right={right_lines}'
+            )
+
+    # 6. 检查正文连续段落缩进
+    for i, page in enumerate(pages, 1):
+        paragraph_groups = collect_body_paragraph_groups(page)
+        for group in paragraph_groups:
+            if group and not is_no_indent(group[0]):
+                raise ValidationError(f'第{i}页正文段落组首段必须不缩进')
+            for p in group[1:]:
+                if is_no_indent(p):
+                    raise ValidationError(f'第{i}页正文连续段落后续段落必须缩进，禁止批量 no-indent')
+
+    # 7. 检查 S 型灌版顺序
+    for i, page in enumerate(pages, 1):
+        blocks = collect_flow_blocks(page)
+        if not is_s_flow_order(blocks):
+            raise ValidationError(
+                f'第{i}页不是 S 型布局：必须先填满左栏，再填右栏，标题/图片/表格不得截断'
+            )
+
+    # 8. 检查最后一页是否留白过多
     last_page = pages[-1]
     last_page_words = len(extract_text(last_page).split())
     if last_page_words < 300 and '参考文献' not in last_page and 'REFERENCES' not in last_page:
@@ -712,20 +879,34 @@ validate_pagination('双栏分页-XXX.html')
 1. **逐页检查留白**
 
    ```
-   ✅ 合格：页面底部空白 < 30mm
-   ⚠️ 警告：页面底部空白 30-50mm（可接受，但不理想）
-   ❌ 失败：页面底部空白 > 50mm（必须调整分页）
+   ✅ 合格：非最后页页面底部空白 < 30px，且内容不压页脚
+   ⚠️ 警告：非最后页页面底部空白 30-57px（建议继续压缩）
+   ❌ 失败：非最后页页面底部空白 >= 57px 或任意溢出
    ```
 2. **检查溢出**
 
    - 使用浏览器检查元素，查看 `.page-content` 高度
    - 如果内容超出 `--content-height (252mm)`，则为溢出
    - 所有内容必须完全在白色页面内
-4. **验证双栏平衡**
+4. **验证双栏对齐**
 
    - 打开浏览器开发者工具
-   - 检查每页的左右栏高度是否相近
-   - CSS column 会自动平衡，但如果差异过大（>20 mm），说明内容分配不当
+   - 检查每页的左右栏宽度、顶部和底部是否对齐
+   - 显式左右栏容器宽度差必须 <= 1px，顶部差 <= 4px，底部差 <= 13px；首页 Introduction 底部差必须 <= 2px
+5. **验证 S 型灌版**
+
+   - 页面内阅读顺序必须为：左栏自上而下 → 右栏自上而下
+   - 不允许因为 `h1`、`h2`、图片、表格或表题而提前切到右栏
+   - 若出现“左栏还有明显空白，但右栏已经开始新章节/新小节/新图表”，CP3 失败，必须重排
+6. **验证首页摘要与 Introduction**
+
+   - 摘要区右侧必须两端对齐，不得出现明显参差
+   - 首页 Introduction 左右列视觉行数必须相等；总行数必须为偶数
+7. **验证正文段落缩进**
+
+   - 正文连续段落组首段必须顶格，无首行缩进
+   - 同一段落组第二段及以后必须有首行缩进
+   - 不允许连续多段正文全部使用 `no-indent`
 
 **如果验证失败：**
 
@@ -753,12 +934,20 @@ if validation_failed:
 - [ ] 文件大小合理（通常20-50 KB）
 - [ ] 包含所有页面（封面+正文+参考文献）
 - [ ] 每页字数在合理范围（见上述标准）
-- [ ] 无任何页面留白>50 mm
+- [ ] 非最后页 `whitespace_px < 30px` 或有明确、视觉正常且不违反表格/行距上限的说明
 - [ ] 无任何内容溢出页面边界
 - [ ] 已完成逐页 Playwright 截图
-- [ ] 已输出逐页几何报告（overflow/whitespace）
+- [ ] 已输出逐页几何报告（overflow/overflow_x/whitespace/column_alignment/first_page_intro_flow/s_flow/inline_citation_line_head/word_spacing_aesthetic）
+- [ ] 摘要区计算样式为 `text-align: justify`，截图中右侧边缘无明显参差
+- [ ] 正文、摘要、图注、表注中的内文引用均与前一个词不可断绑定；无 `[n]` / `[n,m]` 作为视觉行首；未用拆词、截断、自动断字、手工换行或绝对定位规避
+- [ ] 不可断引用和统计短语未造成夸张词距、局部大空洞或视觉突兀的行首块；必要时已通过栏宽/栏距、字号、`word-spacing`、句式或分页微调修正
+- [ ] 首页 Introduction 左右列视觉行数相等，左右列合计行数为偶数
+- [ ] 正文连续段落组首段不缩进，后续段落缩进；未对连续正文批量使用 `no-indent`
+- [ ] 所有正文页均为 S 型灌版：先左栏后右栏，未被标题、图片、表格截断
 - [ ] 所有并排图片图注底部对齐差值 <= 2px
+- [ ] 所有表格保持正常三线表比例；未通过夸张行高、padding、空白块填页底
 - [ ] 在浏览器中打开显示正常
 - [ ] 大表格已按步骤3.4处理（压缩或续表）
-- [ ] 所有续表包含" (Continued)"标题和重复表头
+- [ ] 所有续表只在真正拆分同一表格时包含" (Continued)"标题和重复表头；参考文献续页不得自动加 `(CONTINUED)`，直接接序号
 - [ ] 已输出分页摘要表（含填充率和风险标注）
+- [ ] 最终回复包含关键几何数字，而不是只说“通过”
