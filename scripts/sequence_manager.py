@@ -50,7 +50,7 @@ def _active_entries(data: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _pdf_path(folder: str, doi: str) -> str:
-    return f"{folder}/{doi}.pdf"
+    return f"{folder}/{doi.replace('/', ':')}.pdf"
 
 
 def _sort_key(entry: dict[str, Any]) -> tuple[int, int, str]:

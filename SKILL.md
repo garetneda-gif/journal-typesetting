@@ -45,7 +45,7 @@ mcp:
 - DOI 必须严格写作 `10.65079/mbamNN`，禁止双斜杠、漏斜杠或大小写不一致。
 - 文件夹名必须是 `{doi_suffix}-{short_title}`；文件名必须是 `two-column-{short_title}.html` 和 `single-column-{short_title}.html`。
 - 可见文件默认只展示双栏 HTML 和单栏 HTML；PDF 只有用户明确要求时才显式展示。
-- PDF 文件统一使用 DOI 路径名：`10.65079/mbamNN.pdf`；不再采用 `two-column-{short_title}.pdf`。
+- PDF 文件统一使用 DOI 单文件名的可存储形式：`10.65079:mbamNN.pdf`；不得建立 `10.65079/` 子文件夹，也不再采用 `two-column-{short_title}.pdf`。
 - `Keywords:` 使用逗号加空格分隔；每个关键词组只大写首个单词首字母，组内普通词小写，专有名词/基因符号/缩写保留规范大小写。
 - 正文、摘要、图注和表注里的 `Figure N` / `Table N` 交叉引用必须加粗。
 - 正文引用 `[n]` 必须与前一个词不可断绑定，不能成为视觉行首。
@@ -179,7 +179,7 @@ python3 scripts/style_validator.py /path/to/two-column.html --type two-column
 **目标**：只保留规范命名的可见成品，源文件和中间产物全部归档。
 
 - 读取 `references/sequence-and-output.md` 和 `references/output-hygiene.md`。
-- 若用户要求 PDF，PDF 路径命名为 `10.65079/mbamNN.pdf`；禁止再使用 `two-column-{short_title}.pdf`。
+- 若用户要求 PDF，PDF 命名为 `10.65079:mbamNN.pdf`。`/` 是路径分隔符，不能作为单文件名保存；禁止建立 `10.65079/` 子文件夹或使用 `two-column-{short_title}.pdf`。
 - 输出后运行：
 
 ```bash

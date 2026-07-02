@@ -18,18 +18,6 @@ def _article_short_title(folder_name: str) -> str:
     return folder_name.split("-", 1)[1]
 
 
-def _is_allowed_doi_pdf_dir(path: Path, doi_suffix: str) -> bool:
-    if path.name != "10.65079" or not path.is_dir():
-        return False
-    allowed = {f"{doi_suffix}.pdf"}
-    for child in path.iterdir():
-        if child.name == ".DS_Store":
-            continue
-        if child.name not in allowed or not child.is_file():
-            return False
-    return True
-
-
 def audit_root(issue_root: str | Path, allow_pdf: bool = False) -> dict[str, Any]:
     root = Path(issue_root)
     unexpected: list[dict[str, str]] = []
@@ -47,10 +35,10 @@ def audit_root(issue_root: str | Path, allow_pdf: bool = False) -> dict[str, Any
             short = _article_short_title(item.name)
             doi_suffix = item.name.split("-", 1)[0]
             allowed = {f"two-column-{short}.html", f"single-column-{short}.html"}
+            if allow_pdf:
+                allowed.add(f"10.65079:{doi_suffix}.pdf")
             for child in sorted(item.iterdir(), key=lambda p: p.name):
                 if child.name == ".DS_Store" or child.name.startswith("."):
-                    continue
-                if allow_pdf and _is_allowed_doi_pdf_dir(child, doi_suffix):
                     continue
                 if child.name not in allowed:
                     unexpected.append({"folder": item.name, "path": str(child.relative_to(root)), "type": "dir" if child.is_dir() else "file"})
