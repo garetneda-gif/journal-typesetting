@@ -49,6 +49,10 @@ def _active_entries(data: dict[str, Any]) -> list[dict[str, Any]]:
     return [e for e in data.get("entries", []) if e.get("status", "active") == "active"]
 
 
+def _pdf_path(folder: str, doi: str) -> str:
+    return f"{folder}/{doi}.pdf"
+
+
 def _sort_key(entry: dict[str, Any]) -> tuple[int, int, str]:
     suffix_num = _suffix_number(entry.get("doi_suffix"))
     order = entry.get("order")
@@ -152,14 +156,21 @@ def next_entry(data: dict[str, Any], short_title: str, page_count: int) -> dict[
         raise SequenceError("page_count must be >= 1")
     entries = data.get("entries", [])
     active = _active_entries(data)
-    suffix_nums = [_suffix_number(e.get("doi_suffix")) for e in entries]
-    suffix_nums = [n for n in suffix_nums if n is not None]
+    suffix_nums: list[int] = []
+    for entry in entries:
+        suffix_num = _suffix_number(entry.get("doi_suffix"))
+        if suffix_num is not None:
+            suffix_nums.append(suffix_num)
     next_num = (max(suffix_nums) + 1) if suffix_nums else 1
     suffix = f"mbam{next_num:02d}"
     if any(e.get("doi_suffix") == suffix for e in entries):
         raise SequenceError(f"doi_suffix already exists: {suffix}")
 
-    starts = [e.get("page_end") for e in active if isinstance(e.get("page_end"), int)]
+    starts: list[int] = []
+    for entry in active:
+        page_end = entry.get("page_end")
+        if isinstance(page_end, int):
+            starts.append(page_end)
     page_start = (max(starts) + 1) if starts else 1
     page_end = page_start + page_count - 1
     folder = f"{suffix}-{short_title}"
@@ -174,7 +185,7 @@ def next_entry(data: dict[str, Any], short_title: str, page_count: int) -> dict[
         "page_count": page_count,
         "two_column_html": f"{folder}/two-column-{short_title}.html",
         "single_column_html": f"{folder}/single-column-{short_title}.html",
-        "pdf": f"{folder}/two-column-{short_title}.pdf",
+        "pdf": _pdf_path(folder, f"{prefix}/{suffix}"),
         "status": "active",
         "notes": "",
         "folder": folder,
@@ -229,7 +240,7 @@ def activate_entry(data: dict[str, Any], short_title: str, doi_suffix: str, page
             "page_count": page_count,
             "two_column_html": f"{folder}/two-column-{short_title}.html",
             "single_column_html": f"{folder}/single-column-{short_title}.html",
-            "pdf": f"{folder}/two-column-{short_title}.pdf",
+            "pdf": _pdf_path(folder, f"{_prefix(updated)}/{doi_suffix}"),
             "status": "active",
             "folder": folder,
         }

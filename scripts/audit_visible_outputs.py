@@ -10,11 +10,24 @@ from pathlib import Path
 from typing import Any
 
 ARTICLE_DIR_RE = re.compile(r"^mbam\d{2,}-.+")
+ROOT_SPEC_PDF_RE = re.compile(r"^MedBA-期刊排版(?:规格|规范)-v\d+(?:\.\d+)?\.pdf$")
 IGNORED_ROOT_NAMES = {".DS_Store", ".logs", ".sequence", ".reference", ".incoming"}
 
 
 def _article_short_title(folder_name: str) -> str:
     return folder_name.split("-", 1)[1]
+
+
+def _is_allowed_doi_pdf_dir(path: Path, doi_suffix: str) -> bool:
+    if path.name != "10.65079" or not path.is_dir():
+        return False
+    allowed = {f"{doi_suffix}.pdf"}
+    for child in path.iterdir():
+        if child.name == ".DS_Store":
+            continue
+        if child.name not in allowed or not child.is_file():
+            return False
+    return True
 
 
 def audit_root(issue_root: str | Path, allow_pdf: bool = False) -> dict[str, Any]:
@@ -32,15 +45,18 @@ def audit_root(issue_root: str | Path, allow_pdf: bool = False) -> dict[str, Any
         if item.is_dir() and ARTICLE_DIR_RE.match(item.name):
             checked.append(item.name)
             short = _article_short_title(item.name)
+            doi_suffix = item.name.split("-", 1)[0]
             allowed = {f"two-column-{short}.html", f"single-column-{short}.html"}
-            if allow_pdf:
-                allowed.add(f"two-column-{short}.pdf")
             for child in sorted(item.iterdir(), key=lambda p: p.name):
                 if child.name == ".DS_Store" or child.name.startswith("."):
+                    continue
+                if allow_pdf and _is_allowed_doi_pdf_dir(child, doi_suffix):
                     continue
                 if child.name not in allowed:
                     unexpected.append({"folder": item.name, "path": str(child.relative_to(root)), "type": "dir" if child.is_dir() else "file"})
         elif item.is_file():
+            if ROOT_SPEC_PDF_RE.match(item.name):
+                continue
             unexpected.append({"folder": ".", "path": item.name, "type": "file"})
         elif item.is_dir():
             warnings.append(f"ignored non-article visible directory: {item.name}")

@@ -10,6 +10,11 @@
 
 - `mbamNN-{short_title}` 文章目录。
 
+允许保留的根级可见文件：
+
+- `MedBA-期刊排版规格-vN.N.pdf`
+- `MedBA-期刊排版规范-vN.N.pdf`
+
 允许保留的根级隐藏目录：
 
 - `.logs`
@@ -28,7 +33,7 @@
 
 用户明确要求 PDF 时，可以额外显式展示：
 
-- `two-column-{short_title}.pdf`
+- `10.65079/mbamNN.pdf`
 
 不得显式展示：
 
@@ -69,7 +74,8 @@ chflags hidden .source .assets .tmp .screenshot .validation 2>/dev/null || true
 - 最终文件名必须是：
   - `two-column-{short_title}.html`
   - `single-column-{short_title}.html`
-  - `two-column-{short_title}.pdf`（仅按需）
+  - `10.65079/mbamNN.pdf`（仅按需）
+- PDF 路径必须直接使用 DOI 斜杠形式，禁止继续使用 `two-column-{short_title}.pdf`。
 
 ## 6. 必用审计命令
 

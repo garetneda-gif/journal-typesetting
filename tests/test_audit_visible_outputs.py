@@ -37,8 +37,9 @@ class AuditVisibleOutputsTest(unittest.TestCase):
 
     def test_pdf_requires_allow_pdf(self):
         with tempfile.TemporaryDirectory() as tmp:
-            article, short = self.make_article(tmp)
-            (article / f"two-column-{short}.pdf").write_text("pdf", encoding="utf-8")
+            article, _ = self.make_article(tmp)
+            (article / "10.65079").mkdir()
+            (article / "10.65079" / "mbam05.pdf").write_text("pdf", encoding="utf-8")
             self.assertFalse(audit_visible_outputs.audit_root(Path(tmp))["ok"])
             self.assertTrue(audit_visible_outputs.audit_root(Path(tmp), allow_pdf=True)["ok"])
 

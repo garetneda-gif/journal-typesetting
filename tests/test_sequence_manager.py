@@ -1,16 +1,18 @@
+import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
+SPEC = importlib.util.spec_from_file_location("sequence_manager", ROOT / "scripts" / "sequence_manager.py")
+assert SPEC is not None and SPEC.loader is not None
+sequence_manager = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(sequence_manager)
 
-import sequence_manager
 
-
-def sample_sequence():
+def sample_sequence() -> dict[str, Any]:
     return {
         "issue": "MedBA Medicine working sequence",
         "doi_prefix": "10.65079",
@@ -26,7 +28,7 @@ def sample_sequence():
                 "page_count": 10,
                 "two_column_html": "mbam04-WAA-Anorectal-Scoping-Review/two-column-WAA-Anorectal-Scoping-Review.html",
                 "single_column_html": None,
-                "pdf": "mbam04-WAA-Anorectal-Scoping-Review/two-column-WAA-Anorectal-Scoping-Review.pdf",
+                "pdf": "mbam04-WAA-Anorectal-Scoping-Review/10.65079/mbam04.pdf",
                 "status": "active",
                 "folder": "mbam04-WAA-Anorectal-Scoping-Review",
                 "notes": "",
@@ -41,7 +43,7 @@ def sample_sequence():
                 "page_count": 5,
                 "two_column_html": "mbam05-GERD-LBN-Mendelian-Randomization/two-column-GERD-LBN-Mendelian-Randomization.html",
                 "single_column_html": "mbam05-GERD-LBN-Mendelian-Randomization/single-column-GERD-LBN-Mendelian-Randomization.html",
-                "pdf": "mbam05-GERD-LBN-Mendelian-Randomization/two-column-GERD-LBN-Mendelian-Randomization.pdf",
+                "pdf": "mbam05-GERD-LBN-Mendelian-Randomization/10.65079/mbam05.pdf",
                 "status": "active",
                 "folder": "mbam05-GERD-LBN-Mendelian-Randomization",
                 "notes": "",
@@ -58,6 +60,7 @@ class SequenceManagerTest(unittest.TestCase):
         self.assertEqual(entry["page_start"], 55)
         self.assertEqual(entry["page_end"], 61)
         self.assertEqual(entry["folder"], "mbam06-RRM2-Cervical-Cancer")
+        self.assertEqual(entry["pdf"], "mbam06-RRM2-Cervical-Cancer/10.65079/mbam06.pdf")
 
     def test_validate_rejects_duplicate_doi(self):
         data = sample_sequence()
@@ -100,6 +103,7 @@ class SequenceManagerTest(unittest.TestCase):
         self.assertEqual(entry["page_start"], 55)
         self.assertEqual(entry["page_end"], 58)
         self.assertEqual(entry["folder"], "mbam06-Pending-Article")
+        self.assertEqual(entry["pdf"], "mbam06-Pending-Article/10.65079/mbam06.pdf")
 
     def test_update_pages_shifts_later_entries(self):
         data = sample_sequence()

@@ -26,7 +26,7 @@
       "page_count": 5,
       "two_column_html": "mbam05-GERD-LBN-Mendelian-Randomization/two-column-GERD-LBN-Mendelian-Randomization.html",
       "single_column_html": "mbam05-GERD-LBN-Mendelian-Randomization/single-column-GERD-LBN-Mendelian-Randomization.html",
-      "pdf": "mbam05-GERD-LBN-Mendelian-Randomization/two-column-GERD-LBN-Mendelian-Randomization.pdf",
+      "pdf": "mbam05-GERD-LBN-Mendelian-Randomization/10.65079/mbam05.pdf",
       "status": "active",
       "folder": "mbam05-GERD-LBN-Mendelian-Randomization",
       "notes": ""
@@ -73,7 +73,10 @@
 - 文章文件夹名：`{doi_suffix}-{short_title}`，例如 `mbam05-GERD-LBN-Mendelian-Randomization`。
 - 双栏 HTML：`two-column-{short_title}.html`。
 - 单栏 HTML：`single-column-{short_title}.html`。
-- PDF 仅用户明确要求时生成或显式展示：`two-column-{short_title}.pdf`。
+- PDF 仅用户明确要求时生成或显式展示：`10.65079/mbamNN.pdf`。
+- DOI 斜杠在文件系统中表现为路径分隔符；例如 DOI `10.65079/mbam06` 对应 PDF 路径 `10.65079/mbam06.pdf`。
+- 若用户明确要求用标题命名下载文件，使用下划线连接标题词，避免空格、斜杠和标点；默认仍优先 DOI 安全名。
+- 浏览器或 PDF.js 自带 Download 按 PDF URL basename 或服务器 `Content-Disposition` 命名；上传/发布时必须使用 DOI 路径 PDF，不能使用 `two-column-{short_title}.pdf` 作为客户下载文件。
 - `short_title` 是本篇文章唯一内容命名根，贯穿 HTML、PDF、图床目录、验证目录和递增表。
 
 ## 6. 必用脚本

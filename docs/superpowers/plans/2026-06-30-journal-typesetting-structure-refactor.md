@@ -46,7 +46,7 @@
 - Create: `scripts/audit_visible_outputs.py`
 
 - [ ] Audit `mbamNN-*` folders.
-- [ ] Allow only `two-column-{short}.html`, `single-column-{short}.html`, and optionally `two-column-{short}.pdf`.
+- [ ] Allow only `two-column-{short}.html`, `single-column-{short}.html`, and optionally `10.65079/mbamNN.pdf`.
 - [ ] Ignore hidden directories and known root housekeeping.
 - [ ] Run `python3 -m unittest tests.test_audit_visible_outputs -v`.
 
